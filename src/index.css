@@ -1,11 +1,8 @@
-
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
 /* Import Inter font */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
 All colors MUST be HSL.
 */
@@ -115,13 +112,15 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
-    font-family: 'Inter', sans-serif;
-    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    font-family: "Manrope", sans-serif;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     /* Hide scrollbar for body */
     -ms-overflow-style: none;
     scrollbar-width: none;
     overflow-x: hidden;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    transition:
+      background-color 0.3s ease,
+      color 0.3s ease;
   }
 
   body::-webkit-scrollbar {
@@ -200,7 +199,9 @@ All colors MUST be HSL.
   /* Optimized for touch devices */
   @media (hover: none) and (pointer: coarse) {
     .hover\:shadow-lg:hover {
-      box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+      box-shadow:
+        0 10px 15px -3px rgb(0 0 0 / 0.1),
+        0 4px 6px -4px rgb(0 0 0 / 0.1);
     }
   }
 }
@@ -229,7 +230,7 @@ All colors MUST be HSL.
   }
 
   .voice-pulse::before {
-    content: '';
+    content: "";
     position: absolute;
     inset: 0;
     border-radius: inherit;
@@ -277,22 +278,37 @@ All colors MUST be HSL.
     animation-timing-function: linear;
     animation-iteration-count: infinite;
   }
-  .marquee-left { animation-name: marquee-left; }
-  .marquee-right { animation-name: marquee-right; }
+  .marquee-left {
+    animation-name: marquee-left;
+  }
+  .marquee-right {
+    animation-name: marquee-right;
+  }
 }
 
 @keyframes marquee-left {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
 }
 
 @keyframes marquee-right {
-  0% { transform: translateX(-50%); }
-  100% { transform: translateX(0); }
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(0);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .marquee { animation-duration: 0s !important; animation-iteration-count: 0 !important; }
+  .marquee {
+    animation-duration: 0s !important;
+    animation-iteration-count: 0 !important;
+  }
 }
 
 /* Image optimization utilities */
@@ -301,29 +317,29 @@ All colors MUST be HSL.
     image-rendering: -webkit-optimize-contrast;
     image-rendering: crisp-edges;
   }
-  
+
   .image-smooth {
     image-rendering: -webkit-optimize-contrast;
     image-rendering: smooth;
   }
-  
+
   .aspect-video {
     aspect-ratio: 16 / 9;
   }
-  
+
   .aspect-square {
     aspect-ratio: 1 / 1;
   }
-  
+
   .aspect-photo {
     aspect-ratio: 4 / 3;
   }
-  
+
   .object-cover-center {
     object-fit: cover;
     object-position: center;
   }
-  
+
   .object-contain-center {
     object-fit: contain;
     object-position: center;
@@ -335,28 +351,30 @@ All colors MUST be HSL.
   .progressive-image {
     @apply relative overflow-hidden;
   }
-  
+
   .progressive-image-placeholder {
     @apply absolute inset-0 bg-gradient-to-br from-muted to-muted/80 animate-pulse;
   }
-  
+
   .progressive-image-blur {
     filter: blur(5px);
     transform: scale(1.05);
-    transition: filter 0.3s ease-out, transform 0.3s ease-out;
+    transition:
+      filter 0.3s ease-out,
+      transform 0.3s ease-out;
   }
-  
+
   .progressive-image-loaded {
     filter: blur(0);
     transform: scale(1);
   }
-  
+
   /* Image error fallback */
   .image-error {
     @apply flex items-center justify-center bg-muted text-muted-foreground text-sm min-h-[100px];
   }
-  
+
   .image-error::after {
-    content: '🖼️ Image not available';
+    content: "🖼️ Image not available";
   }
 }
