@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChevronDown, Globe } from 'lucide-react';
 import {
   DropdownMenu,
@@ -8,6 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "@/contexts/TranslationContext";
 
 const languages = [
   { code: 'en', name: 'English', native: 'English' },
@@ -25,10 +26,19 @@ interface LanguageSelectorProps {
 }
 
 const LanguageSelector: React.FC<LanguageSelectorProps> = ({ onLanguageChange }) => {
-  const [selectedLanguage, setSelectedLanguage] = useState(languages[0]);
+  const { currentLanguage, setLanguage } = useTranslation();
+  const [selectedLanguage, setSelectedLanguage] = useState(
+    languages.find(lang => lang.code === currentLanguage) || languages[0]
+  );
+
+  useEffect(() => {
+    const lang = languages.find(l => l.code === currentLanguage) || languages[0];
+    setSelectedLanguage(lang);
+  }, [currentLanguage]);
 
   const handleLanguageSelect = (language: typeof languages[0]) => {
     setSelectedLanguage(language);
+    setLanguage(language.code);
     onLanguageChange?.(language.code);
   };
 

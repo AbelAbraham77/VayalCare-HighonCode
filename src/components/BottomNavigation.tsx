@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Home, MessageSquare, Bell, User, BookOpen } from 'lucide-react';
+import { useTranslation } from '../contexts/TranslationContext';
 
 interface BottomNavigationProps {
   activeTab: string;
@@ -8,12 +9,14 @@ interface BottomNavigationProps {
 }
 
 const BottomNavigation: React.FC<BottomNavigationProps> = ({ activeTab, onTabChange }) => {
+  const { t } = useTranslation();
+  
   const tabs = [
-    { id: 'resources', label: 'Resources', icon: BookOpen },
-    { id: 'chatbot', label: 'Chatbot', icon: MessageSquare },
-    { id: 'home', label: 'Home', icon: Home },
-    { id: 'notifications', label: 'Updates', icon: Bell },
-    { id: 'profile', label: 'Profile', icon: User },
+    { id: 'resources', label: t('resources'), icon: BookOpen },
+    { id: 'chatbot', label: t('chatbot'), icon: MessageSquare },
+    { id: 'home', label: t('home'), icon: Home },
+    { id: 'notifications', label: t('updates'), icon: Bell },
+    { id: 'profile', label: t('profile'), icon: User },
   ];
 
   return (
