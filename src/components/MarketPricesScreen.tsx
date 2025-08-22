@@ -329,7 +329,10 @@ Avoid technical terms like "FAQ" (Fair Average Quality) - use plain language ins
     <div className="pb-20 bg-gray-50 dark:bg-gray-900 min-h-screen transition-colors duration-300">
       {/* Header */}
       <div className="bg-green-600 dark:bg-green-700 text-white p-4 shadow-lg">
-        <div className="flex items-center justify-between mb-0">
+        <div
+          className="flex items-center justify-between"
+          style={{ marginBottom: "-0.3rem" }}
+        >
           <div className="flex items-center">
             <Button
               variant="ghost"
