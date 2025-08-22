@@ -88,20 +88,24 @@ const Index = () => {
       case "knowledge":
         return (
           <KnowledgeCenterScreen
-            onBack={() => setActiveTab("home")}
+            onBack={() => setActiveTab("resources")}
             onFeatureClick={setActiveTab}
           />
         );
       case "buy":
-        return <BuyInputsScreen onBack={() => setActiveTab("home")} />;
+        return <BuyInputsScreen onBack={() => setActiveTab("resources")} />;
       case "scan":
-        return <ScanPestScreen onBack={() => setActiveTab("home")} />;
+        return <ScanPestScreen onBack={() => setActiveTab("resources")} />;
       case "expense":
-        return <ExpenseTrackerScreen onBack={() => setActiveTab("home")} />;
+        return (
+          <ExpenseTrackerScreen onBack={() => setActiveTab("resources")} />
+        );
       case "news":
-        return <AgricultureNewsScreen onBack={() => setActiveTab("home")} />;
+        return (
+          <AgricultureNewsScreen onBack={() => setActiveTab("resources")} />
+        );
       case "schemes":
-        return <GovtSchemesScreen onBack={() => setActiveTab("home")} />;
+        return <GovtSchemesScreen onBack={() => setActiveTab("resources")} />;
       default:
         return (
           <HomeScreen
