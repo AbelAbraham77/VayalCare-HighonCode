@@ -66,7 +66,7 @@ Please provide a comprehensive list of current government schemes in the followi
       "benefits": "What benefits are provided",
       "applicationProcess": "How to apply",
       "lastDate": "Deadline or 'Ongoing'",
-      "category": "finance|insurance|information|organic|subsidy|equipment",
+      "category": "Finance|Insurance|Information|Organic|Subsidy|Equipment",
       "readTime": "X min",
       "popularity": number,
       "successRate": "XX%",
@@ -255,6 +255,11 @@ Source information from:
   };
 
   const handleSchemeClick = async (scheme: SchemeDetail) => {
+    // Show modal immediately with basic scheme info
+    setSelectedScheme(scheme);
+    setError(null);
+
+    // Fetch detailed information in the background
     const detailedInfo = await fetchSchemeDetails(scheme.title);
     if (detailedInfo) {
       setSelectedScheme({
@@ -276,32 +281,86 @@ Source information from:
     fetchCurrentSchemes();
   }, []);
 
+  // Category color scheme
+  const getCategoryColors = (category: string) => {
+    const colors = {
+      finance: {
+        badge:
+          "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
+        button:
+          "bg-green-600 hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-700",
+        text: "text-green-600 dark:text-green-400",
+      },
+      insurance: {
+        badge: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
+        button:
+          "bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700",
+        text: "text-blue-600 dark:text-blue-400",
+      },
+      subsidy: {
+        badge:
+          "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300",
+        button:
+          "bg-orange-600 hover:bg-orange-700 dark:bg-orange-600 dark:hover:bg-orange-700",
+        text: "text-orange-600 dark:text-orange-400",
+      },
+      equipment: {
+        badge:
+          "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300",
+        button:
+          "bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-700",
+        text: "text-purple-600 dark:text-purple-400",
+      },
+      organic: {
+        badge:
+          "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-300",
+        button:
+          "bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-700",
+        text: "text-emerald-600 dark:text-emerald-400",
+      },
+      information: {
+        badge: "bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-300",
+        button:
+          "bg-cyan-600 hover:bg-cyan-700 dark:bg-cyan-600 dark:hover:bg-cyan-700",
+        text: "text-cyan-600 dark:text-cyan-400",
+      },
+    };
+    return (
+      colors[category.toLowerCase() as keyof typeof colors] || {
+        badge: "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300",
+        button:
+          "bg-gray-600 hover:bg-gray-700 dark:bg-gray-600 dark:hover:bg-gray-700",
+        text: "text-gray-600 dark:text-gray-400",
+      }
+    );
+  };
+
   const categories = [
     { id: "all", name: "All Schemes", count: schemes.length },
     {
-      id: "finance",
+      id: "Finance",
       name: "Financial Support",
-      count: schemes.filter((s) => s.category === "finance").length,
+      count: schemes.filter((s) => s.category === "Finance").length,
     },
     {
-      id: "insurance",
+      id: "Insurance",
       name: "Insurance",
-      count: schemes.filter((s) => s.category === "insurance").length,
+      count: schemes.filter((s) => s.category === "Insurance").length,
     },
     {
-      id: "subsidy",
+      id: "Subsidy",
       name: "Subsidies",
-      count: schemes.filter((s) => s.category === "subsidy").length,
+      count: schemes.filter((s) => s.category === "Subsidy").length,
     },
     {
-      id: "equipment",
+      id: "Equipment",
       name: "Equipment",
-      count: schemes.filter((s) => s.category === "equipment").length,
+      count: schemes.filter((s) => s.category === "Equipment").length,
     },
     {
-      id: "organic",
+      id: "Organic",
       name: "Organic Farming",
-      count: schemes.filter((s) => s.category === "organic").length,
+      count: schemes.filter((s) => s.category === "Organic").length,
     },
   ];
 
@@ -383,7 +442,13 @@ Source information from:
                   variant={activeScheme === category.id ? "default" : "outline"}
                   size="sm"
                   onClick={() => setActiveScheme(category.id)}
-                  className={`whitespace-nowrap ${activeScheme === category.id ? "bg-violet-600 hover:bg-violet-700 dark:bg-violet-600 dark:hover:bg-violet-700" : "dark:border-gray-600 dark:text-white dark:hover:bg-gray-700"}`}
+                  className={`whitespace-nowrap ${
+                    activeScheme === category.id
+                      ? category.id === "all"
+                        ? "bg-violet-600 hover:bg-violet-700 dark:bg-violet-600 dark:hover:bg-violet-700"
+                        : getCategoryColors(category.id).button
+                      : "dark:border-gray-600 dark:text-white dark:hover:bg-gray-700"
+                  }`}
                 >
                   {category.name} ({category.count})
                 </Button>
@@ -402,7 +467,9 @@ Source information from:
                       <h3 className="font-semibold text-gray-800 dark:text-white flex-1">
                         {scheme.title}
                       </h3>
-                      <Badge className="bg-violet-100 text-violet-800 dark:bg-violet-900 dark:text-violet-300 ml-2">
+                      <Badge
+                        className={`${getCategoryColors(scheme.category).badge} ml-2`}
+                      >
                         {scheme.category}
                       </Badge>
                     </div>
@@ -427,7 +494,7 @@ Source information from:
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="text-violet-600 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-900/20"
+                        className={`${getCategoryColors(scheme.category).text} hover:bg-opacity-10 hover:bg-current`}
                         onClick={() => handleSchemeClick(scheme)}
                       >
                         <ExternalLink className="h-3 w-3 mr-1" />
@@ -523,130 +590,192 @@ Source information from:
             </div>
 
             <div className="p-4 space-y-4">
+              {/* Always show basic info immediately */}
+              <div>
+                <h3 className="font-semibold text-gray-800 dark:text-white mb-2">
+                  Description
+                </h3>
+                {detailLoading && !selectedScheme.detailedDescription ? (
+                  <div className="space-y-2">
+                    <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                    <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-4/5"></div>
+                    <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-3/4"></div>
+                  </div>
+                ) : (
+                  <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
+                    {selectedScheme.detailedDescription ||
+                      selectedScheme.description}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <h3 className="font-semibold text-gray-800 dark:text-white mb-2">
+                  Eligibility Criteria
+                </h3>
+                {detailLoading &&
+                selectedScheme.eligibility === selectedScheme.eligibility ? (
+                  <div className="space-y-2">
+                    <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                    <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-5/6"></div>
+                  </div>
+                ) : (
+                  <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
+                    {selectedScheme.eligibility}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <h3 className="font-semibold text-gray-800 dark:text-white mb-2">
+                  Benefits
+                </h3>
+                {detailLoading ? (
+                  <div className="space-y-2">
+                    <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                    <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-3/4"></div>
+                  </div>
+                ) : (
+                  <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
+                    {selectedScheme.benefits}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <h3 className="font-semibold text-gray-800 dark:text-white mb-2">
+                  Application Process
+                </h3>
+                {detailLoading ? (
+                  <div className="space-y-2">
+                    <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                    <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-4/5"></div>
+                    <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-2/3"></div>
+                  </div>
+                ) : (
+                  <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
+                    {selectedScheme.applicationProcess}
+                  </p>
+                )}
+              </div>
+
+              {/* Required Documents - Only show when loaded or show skeleton */}
+              <div>
+                <h3 className="font-semibold text-gray-800 dark:text-white mb-2">
+                  Required Documents
+                </h3>
+                {detailLoading ? (
+                  <div className="space-y-1">
+                    <div className="flex items-center space-x-2">
+                      <div className="h-2 w-2 bg-gray-300 dark:bg-gray-600 rounded-full animate-pulse"></div>
+                      <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-32"></div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <div className="h-2 w-2 bg-gray-300 dark:bg-gray-600 rounded-full animate-pulse"></div>
+                      <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-28"></div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <div className="h-2 w-2 bg-gray-300 dark:bg-gray-600 rounded-full animate-pulse"></div>
+                      <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-36"></div>
+                    </div>
+                  </div>
+                ) : selectedScheme.requiredDocuments &&
+                  selectedScheme.requiredDocuments.length > 0 ? (
+                  <ul className="list-disc list-inside text-gray-600 dark:text-gray-300 text-sm space-y-1">
+                    {selectedScheme.requiredDocuments.map((doc, index) => (
+                      <li key={index}>{doc}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-gray-500 dark:text-gray-400 text-sm">
+                    Contact the relevant department for specific document
+                    requirements.
+                  </p>
+                )}
+              </div>
+
+              {/* Status and Contact Info */}
+              <div className="flex items-center justify-between pt-4 border-t dark:border-gray-700">
+                <div>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Application Deadline:{" "}
+                    <span className="font-medium">
+                      {selectedScheme.lastDate}
+                    </span>
+                  </p>
+                  {detailLoading ? (
+                    <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-48 mt-1"></div>
+                  ) : selectedScheme.contactInfo ? (
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                      Contact: {selectedScheme.contactInfo}
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3 pt-4">
+                <Button
+                  className="flex-1 bg-violet-600 hover:bg-violet-700 dark:bg-violet-600 dark:hover:bg-violet-700"
+                  onClick={() => {
+                    if (selectedScheme.officialUrl) {
+                      window.open(selectedScheme.officialUrl, "_blank");
+                    } else {
+                      // Fallback URLs for common schemes
+                      const fallbackUrls: Record<string, string> = {
+                        "PM-KISAN": "https://pmkisan.gov.in/",
+                        PMFBY: "https://pmfby.gov.in/",
+                        "Soil Health Card Scheme":
+                          "https://www.soilhealth.dac.gov.in/",
+                        "Paramparagat Krishi Vikas Yojana (PKVY)":
+                          "https://pgsindia-ncof.gov.in/",
+                      };
+                      const url =
+                        fallbackUrls[selectedScheme.title] ||
+                        "https://agricoop.nic.in/";
+                      window.open(url, "_blank");
+                    }
+                  }}
+                >
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Apply Now
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setSelectedScheme(null)}
+                  className="dark:border-gray-600 dark:text-white dark:hover:bg-gray-700"
+                >
+                  Close
+                </Button>
+              </div>
+
+              {/* Loading indicator at bottom */}
               {detailLoading && (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-8 w-8 animate-spin text-violet-600" />
-                  <span className="ml-2 text-gray-600 dark:text-gray-300">
-                    Loading detailed information...
+                <div className="flex items-center justify-center py-2 border-t dark:border-gray-700">
+                  <Loader2 className="h-4 w-4 animate-spin text-violet-600 mr-2" />
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                    Loading additional details...
                   </span>
                 </div>
               )}
 
-              {error && !detailLoading && (
+              {error && (
                 <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
                   <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
-                  <p className="text-red-600 dark:text-red-300 text-sm">
-                    {error}
-                  </p>
-                </div>
-              )}
-
-              {!detailLoading && !error && (
-                <>
-                  <div>
-                    <h3 className="font-semibold text-gray-800 dark:text-white mb-2">
-                      Description
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
-                      {selectedScheme.detailedDescription ||
-                        selectedScheme.description}
+                  <div className="flex-1">
+                    <p className="text-red-600 dark:text-red-300 text-sm">
+                      {error}
                     </p>
-                  </div>
-
-                  <div>
-                    <h3 className="font-semibold text-gray-800 dark:text-white mb-2">
-                      Eligibility Criteria
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
-                      {selectedScheme.eligibility}
-                    </p>
-                  </div>
-
-                  <div>
-                    <h3 className="font-semibold text-gray-800 dark:text-white mb-2">
-                      Benefits
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
-                      {selectedScheme.benefits}
-                    </p>
-                  </div>
-
-                  <div>
-                    <h3 className="font-semibold text-gray-800 dark:text-white mb-2">
-                      Application Process
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
-                      {selectedScheme.applicationProcess}
-                    </p>
-                  </div>
-
-                  {selectedScheme.requiredDocuments &&
-                    selectedScheme.requiredDocuments.length > 0 && (
-                      <div>
-                        <h3 className="font-semibold text-gray-800 dark:text-white mb-2">
-                          Required Documents
-                        </h3>
-                        <ul className="list-disc list-inside text-gray-600 dark:text-gray-300 text-sm space-y-1">
-                          {selectedScheme.requiredDocuments.map(
-                            (doc, index) => (
-                              <li key={index}>{doc}</li>
-                            )
-                          )}
-                        </ul>
-                      </div>
-                    )}
-
-                  <div className="flex items-center justify-between pt-4 border-t dark:border-gray-700">
-                    <div>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        Application Deadline:{" "}
-                        <span className="font-medium">
-                          {selectedScheme.lastDate}
-                        </span>
-                      </p>
-                      {selectedScheme.contactInfo && (
-                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                          Contact: {selectedScheme.contactInfo}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex gap-3 pt-4">
                     <Button
-                      className="flex-1 bg-violet-600 hover:bg-violet-700 dark:bg-violet-600 dark:hover:bg-violet-700"
-                      onClick={() => {
-                        if (selectedScheme.officialUrl) {
-                          window.open(selectedScheme.officialUrl, "_blank");
-                        } else {
-                          // Fallback URLs for common schemes
-                          const fallbackUrls: Record<string, string> = {
-                            "PM-KISAN": "https://pmkisan.gov.in/",
-                            PMFBY: "https://pmfby.gov.in/",
-                            "Soil Health Card Scheme":
-                              "https://www.soilhealth.dac.gov.in/",
-                            "Paramparagat Krishi Vikas Yojana (PKVY)":
-                              "https://pgsindia-ncof.gov.in/",
-                          };
-                          const url =
-                            fallbackUrls[selectedScheme.title] ||
-                            "https://agricoop.nic.in/";
-                          window.open(url, "_blank");
-                        }
-                      }}
-                    >
-                      <ExternalLink className="h-4 w-4 mr-2" />
-                      Apply Now
-                    </Button>
-                    <Button
+                      size="sm"
                       variant="outline"
-                      onClick={() => setSelectedScheme(null)}
-                      className="dark:border-gray-600 dark:text-white dark:hover:bg-gray-700"
+                      className="mt-2 border-red-300 text-red-600 hover:bg-red-50 dark:border-red-600 dark:text-red-400"
+                      onClick={() => handleSchemeClick(selectedScheme)}
                     >
-                      Close
+                      Retry
                     </Button>
                   </div>
-                </>
+                </div>
               )}
             </div>
           </div>
