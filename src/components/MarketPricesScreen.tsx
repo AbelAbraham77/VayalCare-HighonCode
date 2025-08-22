@@ -149,8 +149,8 @@ const MarketPricesScreen: React.FC<MarketPricesScreenProps> = ({ onBack }) => {
     const words = fullAddress.split(/[,\s]+/).filter((word) => word.length > 0);
 
     // Show only first two words followed by "..."
-    if (words.length > 2) {
-      return `${words[0]} ${words[1]}...`;
+    if (words.length > 4) {
+      return `${words[0]} ${words[1]} ${words[2]} ${words[3]}...`;
     }
 
     // If 2 or fewer words, return as is
@@ -329,7 +329,7 @@ Avoid technical terms like "FAQ" (Fair Average Quality) - use plain language ins
     <div className="pb-20 bg-gray-50 dark:bg-gray-900 min-h-screen transition-colors duration-300">
       {/* Header */}
       <div className="bg-green-600 dark:bg-green-700 text-white p-4 shadow-lg">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-0">
           <div className="flex items-center">
             <Button
               variant="ghost"
@@ -339,37 +339,33 @@ Avoid technical terms like "FAQ" (Fair Average Quality) - use plain language ins
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <div>
-              <h1 className="text-xl font-bold">Market Prices</h1>
-              <div className="flex items-center gap-2 text-green-100 dark:text-green-200 text-sm">
-                <span title={location}>{getTruncatedLocation(location)}</span>
-                {lastUpdated &&
-                  !location.includes("Getting location") &&
-                  !location.match(/^\d+\.\d+, \d+\.\d+$/) && (
-                    <span>• Updated: {formatRelativeTime(lastUpdated)}</span>
-                  )}
-              </div>
-            </div>
+            <h1 className="text-xl font-bold">Market Prices</h1>
           </div>
           <Button
             variant="ghost"
-            size="sm"
+            size="icon"
             className="text-white hover:bg-white/20 dark:hover:bg-white/10"
             onClick={fetchMarketData}
             disabled={loading}
+            title={loading ? "Updating..." : "Refresh market data"}
           >
             {loading ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                Updating...
-              </>
+              <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
-              <>
-                <RefreshCw className="h-4 w-4 mr-1" />
-                Refresh
-              </>
+              <RefreshCw className="h-4 w-4" />
             )}
           </Button>
+        </div>
+        <div
+          className="flex items-center gap-2 text-green-100 dark:text-green-200 text-sm"
+          style={{ marginLeft: "3.2rem" }}
+        >
+          <span title={location}>{getTruncatedLocation(location)}</span>
+          {lastUpdated &&
+            !location.includes("Getting location") &&
+            !location.match(/^\d+\.\d+, \d+\.\d+$/) && (
+              <span>• Updated: {formatRelativeTime(lastUpdated)}</span>
+            )}
         </div>
       </div>
 
