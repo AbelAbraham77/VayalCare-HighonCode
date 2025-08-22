@@ -1,10 +1,9 @@
-
-import React, { useState } from 'react';
-import { Phone, Mic, Fingerprint } from 'lucide-react';
+import React, { useState } from "react";
+import { Phone, Mic, Fingerprint } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import LanguageSelector from './LanguageSelector';
+import LanguageSelector from "./LanguageSelector";
 
 interface LoginPageProps {
   onLogin: () => void;
@@ -12,9 +11,9 @@ interface LoginPageProps {
 }
 
 const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onLanguageChange }) => {
-  const [phoneNumber, setPhoneNumber] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [showOtp, setShowOtp] = useState(false);
-  const [otp, setOtp] = useState('');
+  const [otp, setOtp] = useState("");
 
   const handlePhoneLogin = () => {
     if (phoneNumber.length === 10) {
@@ -43,13 +42,16 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onLanguageChange }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-green-50 to-yellow-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4 transition-colors duration-300"
-         style={{
-           backgroundImage: "url('https://images.unsplash.com/photo-1472396961693-142e6e269027?auto=format&fit=crop&w=1920&q=80')",
-           backgroundSize: 'cover',
-           backgroundPosition: 'center',
-           backgroundBlendMode: 'overlay'
-         }}>
+    <div
+      className="min-h-screen bg-gradient-to-b from-green-50 to-yellow-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4 transition-colors duration-300"
+      style={{
+        backgroundImage:
+          "url('https://images.unsplash.com/photo-1472396961693-142e6e269027?auto=format&fit=crop&w=1920&q=80')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundBlendMode: "overlay",
+      }}
+    >
       <div className="w-full max-w-md">
         {/* Language Selector */}
         <div className="flex justify-center mb-6">
@@ -60,14 +62,18 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onLanguageChange }) => {
           <CardHeader className="text-center pb-6">
             {/* Logo */}
             <div className="w-32 h-32 mx-auto mb-4 flex items-center justify-center">
-              <img 
-                src="/lovable-uploads/b68830df-4731-4efe-b233-08588e1334b3.png" 
-                alt="Project Kisan Logo" 
+              <img
+                src="/lovable-uploads/b68830df-4731-4efe-b233-08588e1334b3.png"
+                alt="VayalCare Logo"
                 className="w-full h-full object-contain"
               />
             </div>
-            <h1 className="text-2xl font-bold text-green-800 dark:text-green-400 mb-2 transition-colors duration-300">Project Kisan</h1>
-            <p className="text-green-600 dark:text-green-300 text-sm transition-colors duration-300">Your Personal Farming Assistant</p>
+            <h1 className="text-2xl font-bold text-green-800 dark:text-green-400 mb-2 transition-colors duration-300">
+              VayalCare
+            </h1>
+            <p className="text-green-600 dark:text-green-300 text-sm transition-colors duration-300">
+              Your Personal Farming Assistant
+            </p>
           </CardHeader>
 
           <CardContent className="space-y-6">
@@ -75,7 +81,9 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onLanguageChange }) => {
               <>
                 {/* Phone Number Login */}
                 <div className="space-y-3">
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors duration-300">Phone Number</label>
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors duration-300">
+                    Phone Number
+                  </label>
                   <div className="flex">
                     <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-400 text-sm transition-colors duration-300">
                       +91
@@ -89,7 +97,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onLanguageChange }) => {
                       maxLength={10}
                     />
                   </div>
-                  <Button 
+                  <Button
                     onClick={handlePhoneLogin}
                     disabled={phoneNumber.length !== 10}
                     className="w-full bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white transition-colors duration-300"
@@ -104,14 +112,16 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onLanguageChange }) => {
                     <span className="w-full border-t border-gray-300 dark:border-gray-600 transition-colors duration-300" />
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-white dark:bg-gray-800 px-2 text-gray-500 dark:text-gray-400 transition-colors duration-300">Or login with</span>
+                    <span className="bg-white dark:bg-gray-800 px-2 text-gray-500 dark:text-gray-400 transition-colors duration-300">
+                      Or login with
+                    </span>
                   </div>
                 </div>
 
                 {/* Voice Recognition */}
-                <Button 
+                <Button
                   onClick={handleVoiceLogin}
-                  variant="outline" 
+                  variant="outline"
                   className="w-full border-orange-300 dark:border-orange-600 text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-950 transition-colors duration-300"
                 >
                   <Mic className="h-4 w-4 mr-2" />
@@ -119,9 +129,9 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onLanguageChange }) => {
                 </Button>
 
                 {/* Biometric Login */}
-                <Button 
+                <Button
                   onClick={handleBiometricLogin}
-                  variant="outline" 
+                  variant="outline"
                   className="w-full border-blue-300 dark:border-blue-600 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950 transition-colors duration-300"
                 >
                   <Fingerprint className="h-4 w-4 mr-2" />
@@ -147,16 +157,16 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onLanguageChange }) => {
                   maxLength={6}
                   className="text-center text-lg tracking-widest dark:bg-gray-700 dark:border-gray-600 dark:text-white transition-colors duration-300"
                 />
-                <Button 
+                <Button
                   onClick={handleOtpSubmit}
                   disabled={otp.length !== 6}
                   className="w-full bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white transition-colors duration-300"
                 >
                   Verify & Login
                 </Button>
-                <Button 
+                <Button
                   onClick={() => setShowOtp(false)}
-                  variant="ghost" 
+                  variant="ghost"
                   className="w-full dark:hover:bg-gray-700 dark:text-gray-300 transition-colors duration-300"
                 >
                   Back to Phone Number

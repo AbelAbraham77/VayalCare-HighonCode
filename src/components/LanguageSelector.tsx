@@ -1,6 +1,5 @@
-
-import React, { useState, useEffect } from 'react';
-import { ChevronDown, Globe } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { ChevronDown, Globe } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,32 +10,29 @@ import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/contexts/TranslationContext";
 
 const languages = [
-  { code: 'en', name: 'English', native: 'English' },
-  { code: 'hi', name: 'Hindi', native: 'हिंदी' },
-  { code: 'ta', name: 'Tamil', native: 'தமிழ்' },
-  { code: 'ml', name: 'Malayalam', native: 'മലയാളം' },
-  { code: 'te', name: 'Telugu', native: 'తెలుగు' },
-  { code: 'kn', name: 'Kannada', native: 'ಕನ್ನಡ' },
-  { code: 'mr', name: 'Marathi', native: 'मराठी' },
-  { code: 'bn', name: 'Bengali', native: 'বাংলা' },
+  { code: "en", name: "English", native: "English" },
+  { code: "ml", name: "Malayalam", native: "മലയാളം" },
 ];
 
 interface LanguageSelectorProps {
   onLanguageChange?: (languageCode: string) => void;
 }
 
-const LanguageSelector: React.FC<LanguageSelectorProps> = ({ onLanguageChange }) => {
+const LanguageSelector: React.FC<LanguageSelectorProps> = ({
+  onLanguageChange,
+}) => {
   const { currentLanguage, setLanguage } = useTranslation();
   const [selectedLanguage, setSelectedLanguage] = useState(
-    languages.find(lang => lang.code === currentLanguage) || languages[0]
+    languages.find((lang) => lang.code === currentLanguage) || languages[0]
   );
 
   useEffect(() => {
-    const lang = languages.find(l => l.code === currentLanguage) || languages[0];
+    const lang =
+      languages.find((l) => l.code === currentLanguage) || languages[0];
     setSelectedLanguage(lang);
   }, [currentLanguage]);
 
-  const handleLanguageSelect = (language: typeof languages[0]) => {
+  const handleLanguageSelect = (language: (typeof languages)[0]) => {
     setSelectedLanguage(language);
     setLanguage(language.code);
     onLanguageChange?.(language.code);
@@ -45,7 +41,10 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({ onLanguageChange })
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="flex items-center gap-2 bg-white/90 backdrop-blur-sm">
+        <Button
+          variant="outline"
+          className="flex items-center gap-2 bg-white/90 backdrop-blur-sm"
+        >
           <Globe className="h-4 w-4" />
           <span className="hidden sm:inline">{selectedLanguage.native}</span>
           <ChevronDown className="h-4 w-4" />
@@ -59,7 +58,9 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({ onLanguageChange })
             className="flex justify-between items-center cursor-pointer hover:bg-green-50"
           >
             <span>{language.name}</span>
-            <span className="text-green-600 font-medium">{language.native}</span>
+            <span className="text-green-600 font-medium">
+              {language.native}
+            </span>
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>

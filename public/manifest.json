@@ -1,7 +1,6 @@
-
 {
-  "name": "Project Kisan - Your Personal Farming Assistant",
-  "short_name": "Project Kisan",
+  "name": "VayalCare - Your Personal Farming Assistant",
+  "short_name": "VayalCare",
   "description": "A comprehensive farming assistant app for Indian farmers with voice-first, multilingual support and rural-friendly UX",
   "start_url": "/",
   "display": "standalone",
