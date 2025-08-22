@@ -1,13 +1,14 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Skeleton } from './skeleton';
-import { cn } from '@/lib/utils';
+import React, { useState, useRef, useEffect } from "react";
+import { Skeleton } from "./skeleton";
+import { cn } from "@/lib/utils";
 
-interface OptimizedImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
+interface OptimizedImageProps
+  extends React.ImgHTMLAttributes<HTMLImageElement> {
   src: string;
   alt: string;
   sizes?: string;
   priority?: boolean;
-  placeholder?: 'blur' | 'skeleton' | 'none';
+  placeholder?: "blur" | "skeleton" | "none";
   quality?: number;
   className?: string;
   fallbackSrc?: string;
@@ -18,9 +19,9 @@ interface OptimizedImageProps extends React.ImgHTMLAttributes<HTMLImageElement> 
 export const OptimizedImage: React.FC<OptimizedImageProps> = ({
   src,
   alt,
-  sizes = '100vw',
+  sizes = "100vw",
   priority = false,
-  placeholder = 'skeleton',
+  placeholder = "skeleton",
   quality = 75,
   className,
   fallbackSrc,
@@ -36,15 +37,15 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
 
   // Generate WebP and fallback sources
   const getImageSources = (imageSrc: string) => {
-    const isAbsolute = imageSrc.startsWith('http') || imageSrc.startsWith('/');
-    const basePath = isAbsolute ? imageSrc : `/src/assets/${imageSrc}`;
-    
+    const isAbsolute = imageSrc.startsWith("http") || imageSrc.startsWith("/");
+    const basePath = isAbsolute ? imageSrc : `/assets/${imageSrc}`;
+
     // Convert extension to WebP if it's a common format
-    const webpSrc = basePath.replace(/\.(jpg|jpeg|png)$/i, '.webp');
-    
+    const webpSrc = basePath.replace(/\.(jpg|jpeg|png)$/i, ".webp");
+
     return {
       webp: webpSrc,
-      fallback: basePath
+      fallback: basePath,
     };
   };
 
@@ -62,8 +63,8 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
         }
       },
       {
-        rootMargin: '50px',
-        threshold: 0.1
+        rootMargin: "50px",
+        threshold: 0.1,
       }
     );
 
@@ -87,7 +88,7 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
   const handleError = () => {
     setHasError(true);
     setIsLoading(false);
-    
+
     if (fallbackSrc && currentSrc !== fallbackSrc) {
       setCurrentSrc(fallbackSrc);
       setHasError(false);
@@ -101,15 +102,15 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
   const generateSrcSet = (baseSrc: string) => {
     const widths = [320, 640, 768, 1024, 1280, 1920];
     return widths
-      .map(width => `${baseSrc}?w=${width}&q=${quality} ${width}w`)
-      .join(', ');
+      .map((width) => `${baseSrc}?w=${width}&q=${quality} ${width}w`)
+      .join(", ");
   };
 
   const renderPlaceholder = () => {
-    if (placeholder === 'skeleton') {
+    if (placeholder === "skeleton") {
       return (
-        <Skeleton 
-          className={cn('w-full h-full absolute inset-0', className)} 
+        <Skeleton
+          className={cn("w-full h-full absolute inset-0", className)}
           {...props}
         />
       );
@@ -124,8 +125,8 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
 
     return (
       <>
-        {isLoading && placeholder !== 'none' && renderPlaceholder()}
-        
+        {isLoading && placeholder !== "none" && renderPlaceholder()}
+
         <picture>
           {/* WebP source for modern browsers */}
           <source
@@ -133,7 +134,7 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
             sizes={sizes}
             type="image/webp"
           />
-          
+
           {/* Fallback for older browsers */}
           <img
             ref={imgRef}
@@ -141,17 +142,18 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
             srcSet={generateSrcSet(fallback)}
             sizes={sizes}
             alt={alt}
-            loading={priority ? 'eager' : 'lazy'}
+            loading={priority ? "eager" : "lazy"}
             decoding="async"
             onLoad={handleLoad}
             onError={handleError}
             className={cn(
-              'transition-opacity duration-300',
-              isLoading ? 'opacity-0' : 'opacity-100',
+              "transition-opacity duration-300",
+              isLoading ? "opacity-0" : "opacity-100",
               className
             )}
             style={{
-              filter: isLoading && placeholder === 'blur' ? 'blur(5px)' : 'none',
+              filter:
+                isLoading && placeholder === "blur" ? "blur(5px)" : "none",
             }}
             {...props}
           />
@@ -162,9 +164,9 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
 
   if (hasError && !fallbackSrc) {
     return (
-      <div 
+      <div
         className={cn(
-          'flex items-center justify-center bg-muted text-muted-foreground text-sm',
+          "flex items-center justify-center bg-muted text-muted-foreground text-sm",
           className
         )}
         {...props}
@@ -174,9 +176,5 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
     );
   }
 
-  return (
-    <div className="relative">
-      {renderImage()}
-    </div>
-  );
+  return <div className="relative">{renderImage()}</div>;
 };

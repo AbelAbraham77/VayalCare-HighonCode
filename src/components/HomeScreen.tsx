@@ -183,32 +183,32 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
     {
       id: "fc1",
       title: language === "ml" ? "കൊടുങ്കാറ്റ് മുന്നറിയിപ്പ്" : "Storm Alert",
-      image: "/src/assets/weather-storm-alert.jpg",
+      image: "/assets/weather-storm-alert.jpg",
     },
     {
       id: "fc2",
       title: language === "ml" ? "വരൾച്ച മുന്നറിയിപ്പ്" : "Drought Warning",
-      image: "/src/assets/weather-drought-alert.jpg",
+      image: "/assets/weather-drought-alert.jpg",
     },
     {
       id: "fc3",
       title: language === "ml" ? "വിള രോഗം" : "Crop Disease",
-      image: "/src/assets/crop-disease.jpg",
+      image: "/assets/crop-disease.jpg",
     },
     {
       id: "fc4",
       title: language === "ml" ? "വിപണി വിലകൾ" : "Market Update",
-      image: "/src/assets/market-update.jpg",
+      image: "/assets/market-update.jpg",
     },
     {
       id: "fc5",
       title: language === "ml" ? "ജലസേചന ടിപ്പുകൾ" : "Irrigation Tips",
-      image: "/src/assets/irrigation-tips.jpg",
+      image: "/assets/irrigation-tips.jpg",
     },
     {
       id: "fc6",
       title: language === "ml" ? "കീട നിയന്ത്രണം" : "Pest Control",
-      image: "/src/assets/pest-control.jpg",
+      image: "/assets/pest-control.jpg",
     },
   ];
 
