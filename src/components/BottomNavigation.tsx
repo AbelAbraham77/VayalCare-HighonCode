@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Home, MessageSquare, AlertTriangle, User } from 'lucide-react';
+import { Home, MessageSquare, Bell, User, BookOpen } from 'lucide-react';
 
 interface BottomNavigationProps {
   activeTab: string;
@@ -9,9 +9,10 @@ interface BottomNavigationProps {
 
 const BottomNavigation: React.FC<BottomNavigationProps> = ({ activeTab, onTabChange }) => {
   const tabs = [
-    { id: 'home', label: 'Home', icon: Home },
+    { id: 'resources', label: 'Resources', icon: BookOpen },
     { id: 'chatbot', label: 'Chatbot', icon: MessageSquare },
-    { id: 'alerts', label: 'Alerts', icon: AlertTriangle },
+    { id: 'home', label: 'Home', icon: Home },
+    { id: 'notifications', label: 'Updates', icon: Bell },
     { id: 'profile', label: 'Profile', icon: User },
   ];
 

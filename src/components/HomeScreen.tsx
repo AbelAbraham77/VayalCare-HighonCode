@@ -72,42 +72,48 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
     color: 'bg-sky-100 text-sky-600 dark:bg-sky-950 dark:text-sky-300',
     image: '/lovable-uploads/7f72bec9-abf7-4827-8913-70dc3494457c.png'
   }, {
-    id: 'forum',
-    title: getTranslatedText('Farmer Forum'),
-    icon: Users,
-    color: 'bg-orange-100 text-orange-600 dark:bg-orange-950 dark:text-orange-300',
-    image: '/lovable-uploads/7d161fd3-22d0-4b69-a7ef-8b8dd812a55b.png'
+    id: 'scan',
+    title: getTranslatedText('Scan Pest'),
+    icon: Camera,
+    color: 'bg-pink-100 text-pink-600 dark:bg-pink-950 dark:text-pink-300',
+    image: '/lovable-uploads/f2bb06a9-32a5-4aa1-bf76-447eb1fb0c64.png'
   }];
   const additionalFeatures = [{
     id: 'knowledge',
     title: getTranslatedText('Knowledge Center'),
     icon: BookOpen,
-    color: 'bg-indigo-100 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-300'
+    color: 'bg-indigo-100 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-300',
+    image: '/lovable-uploads/86b21139-1e5c-4315-b423-e9539e553332.png'
   }, {
     id: 'buy',
     title: getTranslatedText('Buy Inputs'),
     icon: ShoppingCart,
-    color: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-300'
+    color: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-300',
+    image: '/lovable-uploads/3f6b7ec9-3d85-4141-822f-70464f2c5be4.png'
   }, {
-    id: 'scan',
-    title: getTranslatedText('Scan Pest'),
-    icon: Camera,
-    color: 'bg-pink-100 text-pink-600 dark:bg-pink-950 dark:text-pink-300'
+    id: 'forum',
+    title: getTranslatedText('Farmer Forum'),
+    icon: Users,
+    color: 'bg-orange-100 text-orange-600 dark:bg-orange-950 dark:text-orange-300',
+    image: '/lovable-uploads/7d161fd3-22d0-4b69-a7ef-8b8dd812a55b.png'
   }, {
     id: 'expense',
     title: getTranslatedText('Expense Tracker'),
     icon: Calculator,
-    color: 'bg-yellow-100 text-yellow-600 dark:bg-yellow-950 dark:text-yellow-300'
+    color: 'bg-yellow-100 text-yellow-600 dark:bg-yellow-950 dark:text-yellow-300',
+    image: '/lovable-uploads/ea1a065b-d883-4cf8-a40d-b8cfbccfed9f.png'
   }, {
     id: 'news',
     title: getTranslatedText('Agriculture News'),
     icon: Newspaper,
-    color: 'bg-teal-100 text-teal-600 dark:bg-teal-950 dark:text-teal-300'
+    color: 'bg-teal-100 text-teal-600 dark:bg-teal-950 dark:text-teal-300',
+    image: '/lovable-uploads/f265217e-9457-499b-a32c-35f5b5c2b345.png'
   }, {
     id: 'schemes',
     title: getTranslatedText('Govt Schemes'),
     icon: FileText,
-    color: 'bg-violet-100 text-violet-600 dark:bg-violet-950 dark:text-violet-300'
+    color: 'bg-violet-100 text-violet-600 dark:bg-violet-950 dark:text-violet-300',
+    image: '/lovable-uploads/635dff41-e60d-46a3-b325-6bd5578cd7f1.png'
   }];
 
   // Quick actions (placeholders)
@@ -304,7 +310,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                           <img
                             src={feature.image as string}
                             alt={`${feature.title} icon`}
-                            className="h-24 w-24 md:h-32 md:w-32 object-contain-center"
+                            className="h-20 w-24 md:h-32 md:w-32 object-contain-center"
                             loading="lazy"
                           />
                         ) : (
@@ -318,23 +324,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
           </div>
         </div>
 
-        {/* Additional Features */}
-        <div>
-          <h2 className="text-lg font-semibold text-foreground mb-4 transition-colors duration-300">{getTranslatedText('More Tools')}</h2>
-          <div className="grid grid-cols-2 gap-4">
-            {additionalFeatures.map(feature => {
-            const Icon = feature.icon;
-            return <Card key={feature.id} className="farm-mgmt-bg cursor-pointer hover:shadow-lg transition-all duration-300 border-0 bg-muted rounded-[10%] overflow-hidden" onClick={() => onFeatureClick(feature.id)}>
-                  <CardContent className="p-4 text-center m-0">
-                    <div className={`w-12 h-12 text-primary flex items-center justify-center mx-auto mb-3 transition-colors duration-300`}>
-                      <Icon className="h-12 w-12" />
-                    </div>
-                    <h3 className="font-medium text-foreground text-sm transition-colors duration-300">{feature.title}</h3>
-                  </CardContent>
-                </Card>;
-          })}
-          </div>
-        </div>
       </div>
     </div>;
 };

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Send, Bot, User, Languages } from 'lucide-react';
+import { Send, Bot, User, Languages, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -11,7 +11,11 @@ interface Message {
   sender: 'user' | 'assistant';
   timestamp: Date;
 }
-const FarmerAssistantScreen: React.FC = () => {
+interface FarmerAssistantScreenProps {
+  onBack?: () => void;
+}
+
+const FarmerAssistantScreen: React.FC<FarmerAssistantScreenProps> = ({ onBack }) => {
   const [messages, setMessages] = useState<Message[]>([{
     id: '1',
     text: 'Hello! I\'m your AI farming assistant powered by Gemini. I can help you with crop management, pest control, weather advice, and general farming questions. How can I assist you today?',
@@ -87,22 +91,28 @@ const FarmerAssistantScreen: React.FC = () => {
   return <div className="flex flex-col h-screen bg-background">
       {/* Header */}
       <div className="flex-shrink-0 p-4 border-b border-border bg-background">
-        <div className="flex items-center justify-between mb-2">
-          <h1 className="text-2xl font-bold text-foreground">Farming Assistant</h1>
-          <div className="flex items-center gap-2">
-            <Languages className="h-4 w-4 text-muted-foreground" />
-            <Select value={language} onValueChange={setLanguage}>
-              <SelectTrigger className="w-32">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="english">English</SelectItem>
-                <SelectItem value="malayalam">Malayalam</SelectItem>
-              </SelectContent>
-            </Select>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onBack}
+              className="p-2"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <h1 className="text-lg font-semibold text-foreground whitespace-nowrap">Farming Assistant</h1>
           </div>
+          <Select value={language} onValueChange={setLanguage}>
+            <SelectTrigger className="w-24 h-8 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="english">English</SelectItem>
+              <SelectItem value="malayalam">Malayalam</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-        
       </div>
 
       {/* Chat Messages */}
@@ -149,14 +159,12 @@ const FarmerAssistantScreen: React.FC = () => {
       </div>
 
       {/* Fixed Input Bar */}
-      <div className="fixed bottom-16 left-0 right-0 bg-background border-t border-border p-4 shadow-lg backdrop-blur-sm">
-        <div className="container mx-auto max-w-4xl">
-          <div className="flex gap-2">
-            <Input value={inputMessage} onChange={e => setInputMessage(e.target.value)} placeholder="Ask me anything about farming..." onKeyPress={e => e.key === 'Enter' && !e.shiftKey && handleSendMessage()} disabled={isLoading} className="flex-1" />
-            <Button onClick={handleSendMessage} disabled={isLoading || !inputMessage.trim()} size="icon">
-              <Send className="h-4 w-4" />
-            </Button>
-          </div>
+      <div className="fixed bottom-16 left-0 right-0 bg-background p-4 shadow-lg backdrop-blur-sm">
+        <div className="flex gap-2">
+          <Input value={inputMessage} onChange={e => setInputMessage(e.target.value)} placeholder="Ask me anything about farming..." onKeyPress={e => e.key === 'Enter' && !e.shiftKey && handleSendMessage()} disabled={isLoading} className="flex-1" />
+          <Button onClick={handleSendMessage} disabled={isLoading || !inputMessage.trim()} size="icon">
+            <Send className="h-4 w-4" />
+          </Button>
         </div>
       </div>
     </div>;

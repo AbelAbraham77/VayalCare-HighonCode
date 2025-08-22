@@ -40,8 +40,8 @@ const Index = () => {
       case 'twin':
         return <FarmingTwinScreen onBack={() => setActiveTab('home')} />;
       case 'chatbot':
-        return <FarmerAssistantScreen />;
-      case 'alerts':
+        return <FarmerAssistantScreen onBack={() => setActiveTab('home')} />;
+      case 'notifications':
         return <AlertsScreen onBack={() => setActiveTab('home')} />;
       case 'profile':
         return <ProfileScreen />;
@@ -55,8 +55,10 @@ const Index = () => {
         return <WeatherAlertsScreen onBack={() => setActiveTab('home')} />;
       case 'forum':
         return <FarmerForumScreen onBack={() => setActiveTab('home')} />;
+      case 'resources':
+        return <KnowledgeCenterScreen onBack={() => setActiveTab('home')} onFeatureClick={setActiveTab} />;
       case 'knowledge':
-        return <KnowledgeCenterScreen onBack={() => setActiveTab('home')} />;
+        return <KnowledgeCenterScreen onBack={() => setActiveTab('home')} onFeatureClick={setActiveTab} />;
       case 'buy':
         return <BuyInputsScreen onBack={() => setActiveTab('home')} />;
       case 'scan':
