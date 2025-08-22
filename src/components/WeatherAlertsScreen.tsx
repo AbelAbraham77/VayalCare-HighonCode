@@ -67,6 +67,37 @@ const WeatherAlertsScreen: React.FC<WeatherAlertsScreenProps> = ({
     { day: "Sun", condition: "Cloudy", high: 27, low: 22, rain: 40 },
   ]);
 
+  // Function to get address from coordinates using Nominatim
+  const getAddressFromCoords = async (
+    lat: number,
+    lng: number
+  ): Promise<string> => {
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`
+      );
+      const data = await response.json();
+      return data.display_name || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+    } catch (error) {
+      console.log("Nominatim geocoding failed:", error);
+      return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+    }
+  };
+
+  // Function to truncate address for display
+  const getTruncatedLocation = (fullAddress: string): string => {
+    // Split by both commas and spaces to get individual words
+    const words = fullAddress.split(/[,\s]+/).filter((word) => word.length > 0);
+
+    // Show only first two words followed by "..."
+    if (words.length > 4) {
+      return `${words[0]} ${words[1]} ${words[2]} ${words[3]}...`;
+    }
+
+    // If 2 or fewer words, return as is
+    return words.join(" ");
+  };
+
   // Get user location and fetch weather data
   useEffect(() => {
     const fetchWeatherData = async () => {
@@ -91,15 +122,22 @@ const WeatherAlertsScreen: React.FC<WeatherAlertsScreenProps> = ({
         );
 
         const { latitude, longitude } = position.coords;
+        const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+
+        // Get actual address from coordinates using Nominatim
+        const actualLocation = await getAddressFromCoords(latitude, longitude);
+        console.log("Detected location:", actualLocation);
 
         // Use Gemini to get comprehensive weather data
-        const weatherPrompt = `You are a weather data API. Provide current weather information and forecast for farming purposes.
-        
-Location: ${latitude}, ${longitude}
+        const weatherPrompt = `You are a weather data API that provides accurate location-based weather information for farming.
+
+Location: ${actualLocation}
+
+Provide current weather information and 7-day forecast for this specific location: ${actualLocation}
 
 Return a JSON object with exactly this structure (no markdown, just pure JSON):
 {
-  "location": "City, State/Country",
+  "location": "${actualLocation}",
   "currentWeather": {
     "temperature": number (in Celsius),
     "humidity": number (percentage),
@@ -111,7 +149,7 @@ Return a JSON object with exactly this structure (no markdown, just pure JSON):
     {
       "type": "warning|advisory|info",
       "title": "Alert Title",
-      "message": "Short Farm-relevant alert message",
+      "message": "Short Farm-relevant alert message for ${actualLocation}",
       "time": "X hours/days ago",
       "severity": "High|Medium|Low"
     }
@@ -129,18 +167,16 @@ Return a JSON object with exactly this structure (no markdown, just pure JSON):
     {
       "category": "Irrigation|Crop Protection|Harvesting",
       "title": "Advisory Title",
-      "message": "Specific farming advice",
+      "message": "Specific farming advice for ${actualLocation}",
       "priority": "high|medium|low"
     }
   ]
 }
 
-Base the weather on current conditions for coordinates ${latitude}, ${longitude}. Make alerts and advisories relevant to farming activities. Include realistic temperature ranges and weather patterns for the location.`;
-
-        const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+Base the weather data on the current conditions for ${actualLocation}. Make alerts and advisories relevant to farming activities in this specific region. Include realistic temperature ranges and weather patterns typical for ${actualLocation} and its climate zone.`;
 
         const response = await fetch(
-          "https://generativelanguage.googleapis.com/v1beta/models/gemma-3n-e2b-it:generateContent",
+          "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
           {
             method: "POST",
             headers: {
@@ -174,14 +210,21 @@ Base the weather on current conditions for coordinates ${latitude}, ${longitude}
         if (jsonMatch) {
           const weatherData = JSON.parse(jsonMatch[0]);
 
-          setLocation(
-            weatherData.location ||
-              `${latitude.toFixed(2)}, ${longitude.toFixed(2)}`
-          );
-          setCurrentWeather(weatherData.currentWeather);
-          setAlerts(weatherData.alerts);
-          setWeeklyForecast(weatherData.weeklyForecast);
+          // Set the location from Nominatim (actualLocation)
+          setLocation(actualLocation);
+
+          if (weatherData.currentWeather) {
+            setCurrentWeather(weatherData.currentWeather);
+          }
+          if (weatherData.alerts) {
+            setAlerts(weatherData.alerts);
+          }
+          if (weatherData.weeklyForecast) {
+            setWeeklyForecast(weatherData.weeklyForecast);
+          }
         } else {
+          // If JSON parsing fails, still set the detected location
+          setLocation(actualLocation);
           throw new Error("Invalid weather data format");
         }
       } catch (err) {
@@ -248,7 +291,7 @@ Base the weather on current conditions for coordinates ${latitude}, ${longitude}
                   Getting location...
                 </div>
               ) : (
-                <span>{location}</span>
+                <span title={location}>{getTruncatedLocation(location)}</span>
               )}
             </div>
           </div>

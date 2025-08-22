@@ -126,6 +126,37 @@ const MarketPricesScreen: React.FC<MarketPricesScreenProps> = ({ onBack }) => {
     { name: "Wholesale Hub", distance: "25 km", status: "Closed" },
   ]);
 
+  // Function to get address from coordinates using Nominatim
+  const getAddressFromCoords = async (
+    lat: number,
+    lng: number
+  ): Promise<string> => {
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`
+      );
+      const data = await response.json();
+      return data.display_name || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+    } catch (error) {
+      console.log("Nominatim geocoding failed:", error);
+      return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+    }
+  };
+
+  // Function to truncate address for display
+  const getTruncatedLocation = (fullAddress: string): string => {
+    // Split by both commas and spaces to get individual words
+    const words = fullAddress.split(/[,\s]+/).filter((word) => word.length > 0);
+
+    // Show only first two words followed by "..."
+    if (words.length > 2) {
+      return `${words[0]} ${words[1]}...`;
+    }
+
+    // If 2 or fewer words, return as is
+    return words.join(" ");
+  };
+
   // Fetch live market data
   const fetchMarketData = async () => {
     try {
@@ -150,14 +181,20 @@ const MarketPricesScreen: React.FC<MarketPricesScreenProps> = ({ onBack }) => {
 
       const { latitude, longitude } = position.coords;
 
+      // Get actual address from coordinates using Nominatim
+      const actualLocation = await getAddressFromCoords(latitude, longitude);
+      console.log("Detected location:", actualLocation);
+
       // Use Gemini to get location-based market data
       const marketPrompt = `You are a market data API that fetches real mandi prices from Agmarknet (Ministry of Agriculture & Farmers Welfare). 
 
-Location coordinates: ${latitude}, ${longitude}
+Location: ${actualLocation}
 
-Fetch current market prices for major crops in nearby mandis. Return a JSON object with this exact structure (no markdown, just pure JSON):
+Fetch current market prices for major crops in nearby mandis for this specific location: ${actualLocation}
+
+Return a JSON object with this exact structure (no markdown, just pure JSON):
 {
-  "location": "City, State - based on coordinates",
+  "location": "${actualLocation}",
   "lastUpdated": "current date/time",
   "marketData": [
     {
@@ -187,7 +224,7 @@ Fetch current market prices for major crops in nearby mandis. Return a JSON obje
   }
 }
 
-Focus on major crops like Rice, Wheat, Tomato, Onion, Chilli, Potato, Sugarcane based on the region. Use realistic Indian mandi prices and include nearby major agricultural markets. Make prices region-appropriate (e.g., Kerala prices for spices, Punjab for wheat/rice, etc.).
+Focus on major crops like Rice, Wheat, Tomato, Onion, Chilli, Potato, Sugarcane based on the region around ${actualLocation}. Use realistic Indian mandi prices and include nearby major agricultural markets. Make prices region-appropriate (e.g., Kerala prices for spices, Punjab for wheat/rice, etc.).
 
 For quality, use simple terms that farmers understand:
 - "Excellent" for premium quality produce
@@ -233,10 +270,8 @@ Avoid technical terms like "FAQ" (Fair Average Quality) - use plain language ins
       if (jsonMatch) {
         const marketPriceData = JSON.parse(jsonMatch[0]);
 
-        setLocation(
-          marketPriceData.location ||
-            `${latitude.toFixed(2)}, ${longitude.toFixed(2)}`
-        );
+        // Set the location from Nominatim (actualLocation)
+        setLocation(actualLocation);
 
         // Set lastUpdated to current time (actual fetch time) regardless of API response
         setLastUpdated(new Date());
@@ -244,6 +279,8 @@ Avoid technical terms like "FAQ" (Fair Average Quality) - use plain language ins
         setMarketData(marketPriceData.marketData || marketData);
         setNearbyMarkets(marketPriceData.nearbyMarkets || nearbyMarkets);
       } else {
+        // If JSON parsing fails, still set the detected location
+        setLocation(actualLocation);
         throw new Error("Invalid market data format");
       }
     } catch (err) {
@@ -305,7 +342,7 @@ Avoid technical terms like "FAQ" (Fair Average Quality) - use plain language ins
             <div>
               <h1 className="text-xl font-bold">Market Prices</h1>
               <div className="flex items-center gap-2 text-green-100 dark:text-green-200 text-sm">
-                <span>{location}</span>
+                <span title={location}>{getTruncatedLocation(location)}</span>
                 {lastUpdated &&
                   !location.includes("Getting location") &&
                   !location.match(/^\d+\.\d+, \d+\.\d+$/) && (
