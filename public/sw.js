@@ -1,40 +1,61 @@
+const CACHE_NAME = "project-kisan-v1";
+const urlsToCache = ["/", "/manifest.json", "/favicon.ico"];
 
-const CACHE_NAME = 'project-kisan-v1';
-const urlsToCache = [
-  '/',
-  '/static/js/bundle.js',
-  '/static/css/main.css',
-  '/lovable-uploads/852b0cb2-1c40-4d2d-9582-b65109704e1a.png',
-  '/manifest.json'
-];
-
-self.addEventListener('install', function(event) {
+self.addEventListener("install", function (event) {
+  console.log("Service worker installing...");
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(function(cache) {
-        return cache.addAll(urlsToCache);
+    caches
+      .open(CACHE_NAME)
+      .then(function (cache) {
+        console.log("Opened cache");
+        return cache.addAll(
+          urlsToCache.filter(
+            (url) =>
+              url !== "/static/js/bundle.js" && url !== "/static/css/main.css"
+          )
+        );
+      })
+      .catch(function (error) {
+        console.log("Cache addAll failed:", error);
       })
   );
 });
 
-self.addEventListener('fetch', function(event) {
+self.addEventListener("fetch", function (event) {
+  // Skip cache for development server requests
+  if (
+    event.request.url.includes("localhost") &&
+    (event.request.url.includes("@vite") ||
+      event.request.url.includes("node_modules") ||
+      event.request.url.includes(".tsx") ||
+      event.request.url.includes(".ts") ||
+      event.request.url.includes("hot"))
+  ) {
+    return;
+  }
+
   event.respondWith(
-    caches.match(event.request)
-      .then(function(response) {
-        if (response) {
-          return response;
-        }
-        return fetch(event.request);
+    caches.match(event.request).then(function (response) {
+      if (response) {
+        return response;
       }
-    )
+      return fetch(event.request).catch(function (error) {
+        console.log("Fetch failed:", error);
+        // Return a fallback response or handle the error gracefully
+        return new Response("Network error occurred", {
+          status: 408,
+          headers: { "Content-Type": "text/plain" },
+        });
+      });
+    })
   );
 });
 
-self.addEventListener('activate', function(event) {
+self.addEventListener("activate", function (event) {
   event.waitUntil(
-    caches.keys().then(function(cacheNames) {
+    caches.keys().then(function (cacheNames) {
       return Promise.all(
-        cacheNames.map(function(cacheName) {
+        cacheNames.map(function (cacheName) {
           if (cacheName !== CACHE_NAME) {
             return caches.delete(cacheName);
           }
