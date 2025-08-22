@@ -8,7 +8,11 @@ import { Switch } from "@/components/ui/switch";
 import { useTheme } from '../contexts/ThemeContext';
 import { useTranslation } from '../contexts/TranslationContext';
 
-const ProfileScreen = () => {
+interface ProfileScreenProps {
+  onBack?: () => void;
+}
+
+const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack }) => {
   const { theme, toggleTheme } = useTheme();
   const { t } = useTranslation();
   
@@ -64,9 +68,15 @@ const ProfileScreen = () => {
   return (
     <div className="pb-20 bg-gray-50 dark:bg-background min-h-screen transition-colors duration-300">
       {/* Header */}
-      <div className="bg-gradient-to-r from-green-600 to-green-700 dark:from-green-700 dark:to-green-800 text-white p-4 shadow-lg">
-        <h1 className="text-xl font-bold">{t('profile')}</h1>
-        <p className="text-green-100 dark:text-green-200 text-sm">{t('manage_account')}</p>
+      <div className="bg-background border-b border-border p-4">
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="sm" onClick={onBack}>
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </Button>
+          <h1 className="text-xl font-bold text-foreground">{t('profile')}</h1>
+        </div>
       </div>
 
       <div className="p-4 space-y-4">

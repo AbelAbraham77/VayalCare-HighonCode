@@ -36,6 +36,7 @@ const FarmerAssistantScreen: React.FC<AssistantProps> = ({
   ]);
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [hasUserSentMessage, setHasUserSentMessage] = useState(false);
   const [language, setLanguage] = useState("english");
   const apiKey = "AIzaSyB7u7ECKuSiVP2wHzoi-Ic9haOi2U2dK6Q";
 
@@ -51,6 +52,10 @@ const FarmerAssistantScreen: React.FC<AssistantProps> = ({
   };
   const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
+    
+    // Mark that user has sent a message
+    setHasUserSentMessage(true);
+    
     const userMessage: Message = {
       id: Date.now().toString(),
       text: inputMessage.trim(),
@@ -126,14 +131,20 @@ const FarmerAssistantScreen: React.FC<AssistantProps> = ({
     <div className="flex flex-col h-screen bg-background">
       {/* Header */}
       <div className="flex-shrink-0 p-4 border-b border-border bg-background">
-        <div className="flex items-center justify-between mb-2">
-          <h1 className="text-2xl font-bold text-foreground">
-            Farming Assistant
-          </h1>
-          <div className="flex items-center gap-2">
-            <Languages className="h-4 w-4 text-muted-foreground" />
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            {onExit && (
+              <Button variant="ghost" size="sm" onClick={onExit}>
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+            )}
+            <h1 className="text-lg font-semibold text-foreground whitespace-nowrap">
+              Farming Assistant
+            </h1>
+          </div>
+          <div className="ml-4">
             <Select value={language} onValueChange={setLanguage}>
-              <SelectTrigger className="w-32">
+              <SelectTrigger className="w-24">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -141,11 +152,6 @@ const FarmerAssistantScreen: React.FC<AssistantProps> = ({
                 <SelectItem value="malayalam">Malayalam</SelectItem>
               </SelectContent>
             </Select>
-            {onExit && (
-              <Button variant="ghost" size="sm" onClick={onExit}>
-                Close
-              </Button>
-            )}
           </div>
         </div>
       </div>
@@ -207,6 +213,17 @@ const FarmerAssistantScreen: React.FC<AssistantProps> = ({
           </div>
         </ScrollArea>
       </div>
+
+      {/* Assistant Robot Image - shown when no messages sent */}
+      {!hasUserSentMessage && (
+        <div className="fixed inset-0 flex items-center justify-center mt-16 pointer-events-none">
+          <img 
+            src="/lovable-uploads/87bc0776-6ff4-4209-a8b5-8b0c47dc938a.png" 
+            alt="Farming Assistant Robot"
+            className="w-80 h-80 object-contain"
+          />
+        </div>
+      )}
 
       {/* Fixed Input Bar */}
       <div className="fixed bottom-16 left-0 right-0 bg-background p-4 shadow-lg backdrop-blur-sm">

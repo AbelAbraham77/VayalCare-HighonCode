@@ -78,16 +78,17 @@ const UpdatesScreen: React.FC<UpdatesScreenProps> = ({ onBack }) => {
     <div className="flex flex-col h-screen bg-background">
       {/* Header */}
       <div className="flex-shrink-0 p-4 border-b border-border bg-background">
-        <div className="flex items-center space-x-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onBack}
-            className="p-2"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <h1 className="text-lg font-semibold text-foreground">Updates</h1>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            {onBack && (
+              <Button variant="ghost" size="sm" onClick={onBack}>
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+            )}
+            <h1 className="text-lg font-semibold text-foreground whitespace-nowrap">
+              Updates
+            </h1>
+          </div>
         </div>
       </div>
 

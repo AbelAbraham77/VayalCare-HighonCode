@@ -67,7 +67,7 @@ const Index = () => {
       case "notifications":
         return <AlertsScreen onBack={() => setActiveTab("home")} />;
       case "profile":
-        return <ProfileScreen />;
+        return <ProfileScreen onBack={() => setActiveTab("home")} />;
       case "diagnose":
         return <DiagnoseCropScreen onBack={() => setActiveTab("home")} />;
       case "market":

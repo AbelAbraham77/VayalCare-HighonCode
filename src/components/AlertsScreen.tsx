@@ -64,21 +64,19 @@ const AlertsScreen: React.FC<AlertsScreenProps> = ({ onBack }) => {
   };
 
   return (
-    <div className="pb-20 bg-gray-50 dark:bg-background min-h-screen transition-colors duration-300">
+    <div className="pb-20 bg-background min-h-screen">
       {/* Header */}
-      <div className="bg-gradient-to-r from-red-600 to-red-700 dark:from-red-700 dark:to-red-800 text-white p-4 shadow-lg">
-        <div className="flex items-center">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={onBack}
-            className="mr-3 text-white hover:bg-white/20 dark:hover:bg-white/10"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div>
-            <h1 className="text-xl font-bold">Alerts & Notifications</h1>
-            <p className="text-red-100 dark:text-red-200 text-sm">Stay updated with farm activities</p>
+      <div className="flex-shrink-0 p-4 border-b border-border bg-background">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            {onBack && (
+              <Button variant="ghost" size="sm" onClick={onBack}>
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+            )}
+            <h1 className="text-lg font-semibold text-foreground whitespace-nowrap">
+              Updates
+            </h1>
           </div>
         </div>
       </div>
