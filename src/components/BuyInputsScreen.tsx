@@ -1,8 +1,16 @@
 import React, { useState } from 'react';
-import { ShoppingCart, Search, Filter, Star, ArrowLeft } from 'lucide-react';
+import { ShoppingCart, Search, Filter, Star, ArrowLeft, Check, X, Minus, Plus } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 interface BuyInputsScreenProps {
   onBack?: () => void;
@@ -11,6 +19,8 @@ interface BuyInputsScreenProps {
 const BuyInputsScreen: React.FC<BuyInputsScreenProps> = ({ onBack }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
+  const [cartItems, setCartItems] = useState<number[]>([]);
+  const [showCartDialog, setShowCartDialog] = useState(false);
 
   const inputs = [
     {
@@ -68,6 +78,30 @@ const BuyInputsScreen: React.FC<BuyInputsScreenProps> = ({ onBack }) => {
     return searchTermMatch && categoryMatch;
   });
 
+  const addToCart = (inputId: number) => {
+    setCartItems(prev => [...prev, inputId]);
+  };
+
+  const isInCart = (inputId: number) => {
+    return cartItems.includes(inputId);
+  };
+
+  const removeFromCart = (inputId: number) => {
+    setCartItems(prev => prev.filter(id => id !== inputId));
+  };
+
+  const getCartItems = () => {
+    const cartItemsWithDetails = cartItems.map(itemId => {
+      const item = inputs.find(input => input.id === itemId);
+      return item;
+    }).filter(Boolean);
+    return cartItemsWithDetails;
+  };
+
+  const getTotalPrice = () => {
+    return getCartItems().reduce((total, item) => total + (item?.price || 0), 0);
+  };
+
   return (
     <div className="pb-20 bg-gray-50 dark:bg-background min-h-screen transition-colors duration-300">
       {/* Header */}
@@ -87,10 +121,84 @@ const BuyInputsScreen: React.FC<BuyInputsScreenProps> = ({ onBack }) => {
               <p className="text-emerald-100 dark:text-emerald-200 text-sm">Purchase farming supplies</p>
             </div>
           </div>
-          <Button variant="ghost" size="sm" className="text-white hover:bg-white/20 dark:hover:bg-white/10">
-            <ShoppingCart className="h-4 w-4 mr-1" />
-            Cart (0)
-          </Button>
+          <Dialog open={showCartDialog} onOpenChange={setShowCartDialog}>
+            <DialogTrigger asChild>
+              <Button variant="ghost" size="sm" className="text-white hover:bg-white/20 dark:hover:bg-white/10">
+                <ShoppingCart className="h-4 w-4 mr-1" />
+                Cart ({cartItems.length})
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <ShoppingCart className="h-5 w-5 text-emerald-600" />
+                  Shopping Cart
+                </DialogTitle>
+                <DialogDescription>
+                  Review your selected farming supplies before checkout.
+                </DialogDescription>
+              </DialogHeader>
+
+              {cartItems.length === 0 ? (
+                <div className="text-center py-8">
+                  <ShoppingCart className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                  <p className="text-gray-500 dark:text-gray-400">Your cart is empty</p>
+                  <p className="text-sm text-gray-400 dark:text-gray-500">Add some farming supplies to get started</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {getCartItems().map((item, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
+                      <div className="flex-1">
+                        <h4 className="font-medium text-gray-800 dark:text-white">{item?.name}</h4>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">{item?.vendor}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge variant="outline" className="text-xs">
+                            {item?.category}
+                          </Badge>
+                          <div className="flex items-center">
+                            <Star className="h-3 w-3 text-yellow-500 mr-1" />
+                            <span className="text-xs text-gray-600 dark:text-gray-400">{item?.rating}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-bold text-lg text-gray-800 dark:text-white">₹{item?.price}</p>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeFromCart(item?.id || 0)}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+                    <div className="flex items-center justify-between mb-4">
+                      <span className="text-lg font-semibold text-gray-800 dark:text-white">Total:</span>
+                      <span className="text-xl font-bold text-emerald-600 dark:text-emerald-400">₹{getTotalPrice()}</span>
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline" 
+                        className="flex-1"
+                        onClick={() => setShowCartDialog(false)}
+                      >
+                        Continue Shopping
+                      </Button>
+                      <Button className="flex-1 bg-emerald-600 hover:bg-emerald-700">
+                        Proceed to Checkout
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
@@ -151,8 +259,25 @@ const BuyInputsScreen: React.FC<BuyInputsScreenProps> = ({ onBack }) => {
                 
                 <p className="text-sm text-gray-600 dark:text-gray-300 mt-2">Vendor: {input.vendor}</p>
                 
-                <Button size="sm" variant="outline" className="w-full mt-3 dark:border-gray-600 dark:text-white dark:hover:bg-gray-700">
-                  Add to Cart
+                <Button 
+                  size="sm" 
+                  variant={isInCart(input.id) ? "default" : "outline"}
+                  className={`w-full mt-3 ${
+                    isInCart(input.id) 
+                      ? "bg-green-600 hover:bg-green-700 text-white dark:bg-green-600 dark:hover:bg-green-700" 
+                      : "dark:border-gray-600 dark:text-white dark:hover:bg-gray-700"
+                  }`}
+                  onClick={() => addToCart(input.id)}
+                  disabled={isInCart(input.id)}
+                >
+                  {isInCart(input.id) ? (
+                    <>
+                      <Check className="h-4 w-4 mr-2" />
+                      Added to Cart
+                    </>
+                  ) : (
+                    "Add to Cart"
+                  )}
                 </Button>
               </CardContent>
             </Card>
