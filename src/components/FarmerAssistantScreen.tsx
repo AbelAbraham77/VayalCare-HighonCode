@@ -21,7 +21,6 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { marked } from "marked";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { routeFromTranscript } from "@/lib/voiceNavigation";
 
 interface Message {
   id: string;
@@ -329,11 +328,11 @@ const FarmerAssistantScreen: React.FC<AssistantProps> = ({
     scrollToBottom();
   }, [messages, isLoading]);
 
-  const formatMessageText = (text: string) => {
+  const formatMessageText = (text: string): { __html: string } => {
     if (language === "malayalam") {
       return { __html: text.replace(/\n/g, "<br />") };
     }
-    const html = marked(text);
+    const html = marked.parse(text) as string;
     return { __html: html };
   };
 
@@ -396,36 +395,16 @@ const FarmerAssistantScreen: React.FC<AssistantProps> = ({
         setInterimText("");
         setIsProcessing(true);
         toast({
-          title: language === "malayalam" ? "കേട്ടത്" : "Processing",
+          title: language === "malayalam" ? "കേട്ടത്" : "Voice Input Received",
           description: `"${finalTranscript}"`,
         });
-        try {
-          const decision = await routeFromTranscript(finalTranscript);
-          if (
-            decision.action === "navigate" &&
-            decision.targetId &&
-            onFeatureClick
-          ) {
-            onFeatureClick(decision.targetId);
-            toast({
-              title: language === "malayalam" ? "പോകുന്നു" : "Navigating",
-              description: `${decision.targetId} • ${(decision.confidence * 100).toFixed(0)}%`,
-            });
-          } else {
-            setInputMessage(finalTranscript);
-            setTimeout(() => {
-              handleSendMessage();
-            }, 100);
-          }
-        } catch (error) {
-          console.error("Voice routing error:", error);
-          setInputMessage(finalTranscript);
-          setTimeout(() => {
-            handleSendMessage();
-          }, 100);
-        } finally {
-          setIsProcessing(false);
-        }
+
+        // Simply set the transcribed text to input and send it
+        setInputMessage(finalTranscript);
+        setTimeout(() => {
+          handleSendMessage();
+        }, 100);
+        setIsProcessing(false);
       }
     };
     rec.onerror = (event: any) => {
