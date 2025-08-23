@@ -19,6 +19,7 @@ import AgricultureNewsScreen from "../components/AgricultureNewsScreen";
 import GovtSchemesScreen from "../components/GovtSchemesScreen";
 import LabourerHub from "../components/LabourerHub";
 import FairFarm from "../components/FairFarm";
+import CropWise from "../components/CropWise";
 import BottomNavigation from "../components/BottomNavigation";
 
 const Index = () => {
@@ -113,6 +114,13 @@ const Index = () => {
         return <LabourerHub onBack={() => setActiveTab("resources")} />;
       case "fairfarm":
         return <FairFarm onBack={() => setActiveTab("home")} />;
+      case "cropwise":
+        return (
+          <CropWise
+            onBack={() => setActiveTab("home")}
+            language={selectedLanguage}
+          />
+        );
       default:
         return (
           <HomeScreen

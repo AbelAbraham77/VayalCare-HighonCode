@@ -855,9 +855,11 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                 <button
                   key={action.id}
                   onClick={() => {
-                    // Handle Fair Farm navigation
+                    // Handle CropWise and Fair Farm navigation
                     if (action.id === "mapping") {
                       onFeatureClick("fairfarm");
+                    } else if (action.id === "spraying") {
+                      onFeatureClick("cropwise");
                     } else {
                       // Show placeholder toast for other actions
                       toast({
