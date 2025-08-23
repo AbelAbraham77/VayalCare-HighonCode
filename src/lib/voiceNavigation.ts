@@ -253,6 +253,7 @@ export const FEATURE_KB: Array<{
       "help",
       "tutorial",
       "how to",
+      "how can I know",
       "knowledge",
       "ഗൈഡുകൾ",
       "സഹായം",
@@ -537,7 +538,7 @@ CONTEXT PATTERNS TO RECOGNIZE:
 - Money spent/costs/expenses → "expense"  
 - Selling crops/price checking → "market"
 - Weather concerns/rain/storm → "weather"
-- Learning/guidance/how-to → "knowledge"
+- Learning/guidance/how-to/how can/diy solutions/homemade remedies → "knowledge"
 - Buying seeds/fertilizer/tools → "buy"
 - Community questions/discussions → "forum"
 - Planning next crop/timing → "planner"

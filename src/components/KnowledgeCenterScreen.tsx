@@ -7,6 +7,7 @@ import {
   Calculator,
   Newspaper,
   FileText,
+  Users,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -46,7 +47,8 @@ const KnowledgeCenterScreen: React.FC<KnowledgeCenterScreenProps> = ({
               id: "buy",
               title: "Buy Inputs",
               icon: ShoppingCart,
-              image: "/lovable-uploads/3f6b7ec9-3d85-4141-822f-70464f2c5be4.png",
+              image:
+                "/lovable-uploads/3f6b7ec9-3d85-4141-822f-70464f2c5be4.png",
             },
             {
               id: "scan",
@@ -75,6 +77,13 @@ const KnowledgeCenterScreen: React.FC<KnowledgeCenterScreenProps> = ({
               icon: FileText,
               image:
                 "/lovable-uploads/635dff41-e60d-46a3-b325-6bd5578cd7f1.png",
+            },
+            {
+              id: "labourers",
+              title: "Labourers",
+              icon: Users,
+              image:
+                "/lovable-uploads/87bc0776-6ff4-4209-a8b5-8b0c47dc938a.png",
             },
           ].map((tool) => {
             const Icon = tool.icon;
