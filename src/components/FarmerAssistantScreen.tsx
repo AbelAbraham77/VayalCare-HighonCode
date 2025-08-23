@@ -62,6 +62,11 @@ const FarmerAssistantScreen: React.FC<AssistantProps> = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const recognitionRef = useRef<any>(null);
 
+  // Input focus and animation state
+  const [isFocused, setIsFocused] = useState(false);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const inputContainerRef = useRef<HTMLDivElement>(null);
+
   // Text-to-Speech state
   const [speakingMessageId, setSpeakingMessageId] = useState<string | null>(
     null
@@ -82,6 +87,24 @@ const FarmerAssistantScreen: React.FC<AssistantProps> = ({
     breaks: true,
     gfm: true,
   });
+
+  // Handle mouse movement for dynamic glow effect
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (inputContainerRef.current) {
+        const rect = inputContainerRef.current.getBoundingClientRect();
+        setMousePosition({
+          x: e.clientX - rect.left,
+          y: e.clientY - rect.top,
+        });
+      }
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+    };
+  }, []);
 
   // Initialize speech synthesis
   useEffect(() => {
@@ -437,6 +460,15 @@ const FarmerAssistantScreen: React.FC<AssistantProps> = ({
     }
   };
 
+  // Input focus handlers
+  const handleInputFocus = () => {
+    setIsFocused(true);
+  };
+
+  const handleInputBlur = () => {
+    setIsFocused(false);
+  };
+
   const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
 
@@ -595,6 +627,126 @@ const FarmerAssistantScreen: React.FC<AssistantProps> = ({
 
   return (
     <div className="flex flex-col h-screen bg-background">
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
+        .chat-wrapper {
+          position: relative;
+          flex: 1;
+          border-radius: 16px;
+          transition: transform 0.3s ease;
+          display: flex;
+          flex-direction: row;
+          gap:10px;
+          align-items: center;
+        }
+
+        .chat-wrapper.active {
+          transform: scale(1.01);
+        }
+
+        .liquid-glow {
+          position: absolute;
+          inset: -3px;
+          z-index: 1;
+          height: calc(100% + 5px);
+          border-radius: 16px;
+          background: linear-gradient(
+            135deg,
+            #ff2d55 0%,
+            #ff9500 20%,
+            #ffcc00 30%,
+            #34c759 50%,
+            #00b4ff 70%,
+            #af52de 90%,
+            #ff2d55 100%
+          );
+          background-size: 300% 300%;
+          opacity: 0;
+          filter: blur(18px);
+          transition: opacity 0.3s ease;
+        }
+
+        .chat-wrapper.active .liquid-glow {
+          opacity: 1;
+          animation: liquidGlow 3s ease infinite, moveGradient 15s linear infinite;
+        }
+
+        @keyframes liquidGlow {
+          0%, 100% { filter: blur(8px); }
+          50% { filter: blur(12px); }
+        }
+
+        @keyframes moveGradient {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+
+        .chat-input {
+          width:80%;
+          padding: 12px 16px;
+          border-radius: 16px;
+          border: 1px solid green;
+          background-color: rgba(255, 255, 255, 0.9);
+          position: relative;
+          z-index: 2;
+          backdrop-filter: blur(8px);
+          transition: all 0.3s ease;
+          font-size: 16px;
+          outline: none;
+          color:black;
+
+        }
+
+        .chat-input::placeholder {
+          color: rgba(69, 69, 69, 0.6);
+        }
+
+        .chat-wrapper.active .chat-input {
+          background-color: rgba(255, 255, 255, 1);
+          border:none;
+        }
+
+        .chat-wrapper::after {
+          content: "";
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: radial-gradient(
+            circle at var(--mouse-x) var(--mouse-y),
+            rgba(255, 255, 255, 0.1) 0%,
+            transparent 80%
+          );
+          opacity: 0;
+          z-index: 2;
+          pointer-events: none;
+          transition: opacity 0.3s ease;
+          border-radius: 16px;
+        }
+
+        .chat-wrapper.active::after {
+          opacity: 1;
+        }
+
+        @media (hover: hover) {
+          .chat-wrapper.active .liquid-glow {
+            animation: liquidGlow 3s ease infinite, moveGradient 15s linear infinite, positionGlow 8s ease-in-out infinite;
+          }
+
+          @keyframes positionGlow {
+            0% { clip-path: ellipse(150% 150% at 0% 0%); }
+            25% { clip-path: ellipse(150% 150% at 100% 0%); }
+            50% { clip-path: ellipse(150% 150% at 100% 100%); }
+            75% { clip-path: ellipse(150% 150% at 0% 100%); }
+            100% { clip-path: ellipse(150% 150% at 0% 0%); }
+          }
+        }
+        `,
+        }}
+      />
       <div className="flex-shrink-0 p-4 border-b border-border bg-background">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -741,58 +893,74 @@ const FarmerAssistantScreen: React.FC<AssistantProps> = ({
         )}
 
         <div className="flex gap-2">
-          <Input
-            value={inputMessage}
-            onChange={(e) => setInputMessage(e.target.value)}
-            placeholder="Ask me anything about farming..."
-            onKeyPress={(e) =>
-              e.key === "Enter" && !e.shiftKey && handleSendMessage()
-            }
-            disabled={isLoading}
-            className="flex-1"
-            style={{
-              fontFamily:
-                language === "malayalam"
-                  ? "'Noto Sans Malayalam', sans-serif"
-                  : "inherit",
-            }}
-          />
-          <Button
-            variant={listening || isProcessing ? "secondary" : "outline"}
-            onClick={handleMicClick}
-            disabled={isProcessing}
-            size="icon"
-            title={
-              listening
-                ? language === "malayalam"
-                  ? "കേൾക്കുന്നു…"
-                  : "Listening…"
-                : isProcessing
-                  ? language === "malayalam"
-                    ? "പ്രോസസ്സിംഗ്..."
-                    : "Processing..."
-                  : language === "malayalam"
-                    ? "വോയ്സ് ഇൻപുട്ട്"
-                    : "Voice input"
+          <div
+            className={`chat-wrapper ${isFocused ? "active" : ""}`}
+            ref={inputContainerRef}
+            style={
+              {
+                "--mouse-x": `${mousePosition.x}px`,
+                "--mouse-y": `${mousePosition.y}px`,
+              } as React.CSSProperties
             }
           >
-            <Mic
-              className={`h-4 w-4 ${
-                listening
-                  ? "animate-pulse text-red-500"
-                  : isProcessing
-                    ? "animate-spin text-blue-500"
-                    : ""
-              }`}
+            <div className="liquid-glow"></div>
+            <input
+              value={inputMessage}
+              onChange={(e) => setInputMessage(e.target.value)}
+              placeholder="Ask me anything about farming..."
+              onKeyPress={(e) =>
+                e.key === "Enter" && !e.shiftKey && handleSendMessage()
+              }
+              onFocus={handleInputFocus}
+              onBlur={handleInputBlur}
+              disabled={isLoading}
+              className="chat-input"
+              style={{
+                fontFamily:
+                  language === "malayalam"
+                    ? "'Noto Sans Malayalam', sans-serif"
+                    : "inherit",
+              }}
             />
-          </Button>
-          <Button
-            onClick={handleSendMessage}
-            disabled={isLoading || !inputMessage.trim()}
-            size="icon"
-          >
-            <Send className="h-4 w-4" />
-          </Button>
+            <Button
+              variant={listening || isProcessing ? "secondary" : "outline"}
+              onClick={handleMicClick}
+              disabled={isProcessing}
+              size="icon"
+              title={
+                listening
+                  ? language === "malayalam"
+                    ? "കേൾക്കുന്നു…"
+                    : "Listening…"
+                  : isProcessing
+                    ? language === "malayalam"
+                      ? "പ്രോസസ്സിംഗ്..."
+                      : "Processing..."
+                    : language === "malayalam"
+                      ? "വോയ്സ് ഇൻപുട്ട്"
+                      : "Voice input"
+              }
+              style={{ zIndex: 10 }}
+            >
+              <Mic
+                className={`h-4 w-4 ${
+                  listening
+                    ? "animate-pulse text-red-500"
+                    : isProcessing
+                      ? "animate-spin text-blue-500"
+                      : ""
+                }`}
+              />
+            </Button>
+            <Button
+              onClick={handleSendMessage}
+              disabled={isLoading || !inputMessage.trim()}
+              size="icon"
+              style={{ zIndex: 100, backgroundColor: "green" }}
+            >
+              <Send className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </div>
     </div>
