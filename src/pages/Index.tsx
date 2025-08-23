@@ -21,7 +21,7 @@ import LabourerHub from "../components/LabourerHub";
 import BottomNavigation from "../components/BottomNavigation";
 
 const Index = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(true); // Temporarily set to true for local testing
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // Temporarily set to true for local testing
   const [activeTab, setActiveTab] = useState("home");
   const [selectedLanguage, setSelectedLanguage] = useState("en");
   const [initialChatQuestion, setInitialChatQuestion] = useState<string | null>(
