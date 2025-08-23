@@ -1,5 +1,14 @@
 import React, { useEffect, useState, useRef } from "react";
-import { Send, Bot, User, Languages, ArrowLeft, Mic } from "lucide-react";
+import {
+  Send,
+  Bot,
+  User,
+  Languages,
+  ArrowLeft,
+  Mic,
+  Volume2,
+  VolumeX,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -13,12 +22,14 @@ import { useToast } from "@/components/ui/use-toast";
 import { marked } from "marked";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { routeFromTranscript } from "@/lib/voiceNavigation";
+
 interface Message {
   id: string;
   text: string;
   sender: "user" | "assistant";
   timestamp: Date;
 }
+
 interface AssistantProps {
   initialQuestion?: string;
   onExit?: () => void;
@@ -51,6 +62,17 @@ const FarmerAssistantScreen: React.FC<AssistantProps> = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const recognitionRef = useRef<any>(null);
 
+  // Text-to-Speech state
+  const [speakingMessageId, setSpeakingMessageId] = useState<string | null>(
+    null
+  );
+  const [speechSynthesis, setSpeechSynthesis] =
+    useState<SpeechSynthesis | null>(null);
+  const currentUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const speechQueueRef = useRef<Array<{ messageId: string; text: string }>>([]);
+  const isProcessingSpeechRef = useRef(false);
+  const [isSpeechReady, setIsSpeechReady] = useState(false);
+
   const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -61,7 +83,221 @@ const FarmerAssistantScreen: React.FC<AssistantProps> = ({
     gfm: true,
   });
 
-  // Auto-scroll to bottom when messages update
+  // Initialize speech synthesis
+  useEffect(() => {
+    if ("speechSynthesis" in window) {
+      setSpeechSynthesis(window.speechSynthesis);
+
+      // Load voices
+      const loadVoices = () => {
+        const voices = window.speechSynthesis.getVoices();
+        console.log(
+          "Available TTS voices:",
+          voices.map((v) => ({ name: v.name, lang: v.lang }))
+        );
+        if (voices.length > 0) {
+          setIsSpeechReady(true);
+        }
+      };
+
+      loadVoices();
+      window.speechSynthesis.onvoiceschanged = loadVoices;
+    } else {
+      toast({
+        title: language === "malayalam" ? "പിന്തുണയില്ല" : "Not supported",
+        description:
+          language === "malayalam"
+            ? "ഈ ബ്രൗസറിൽ ടെക്സ്റ്റ്-ടു-സ്പീച്ച് പിന്തുണയില്ല"
+            : "Text-to-speech is not supported in this browser",
+        variant: "destructive",
+      });
+    }
+
+    return () => {
+      cleanupAllSpeech();
+    };
+  }, []);
+
+  // Cleanup function
+  const cleanupAllSpeech = () => {
+    isProcessingSpeechRef.current = false;
+    speechQueueRef.current = [];
+    setSpeakingMessageId(null);
+    currentUtteranceRef.current = null;
+
+    if (speechSynthesis) {
+      speechSynthesis.cancel();
+    }
+  };
+
+  // Process speech queue
+  const processNextSpeech = () => {
+    if (isProcessingSpeechRef.current || speechQueueRef.current.length === 0) {
+      return;
+    }
+
+    const { messageId, text } = speechQueueRef.current.shift()!;
+    isProcessingSpeechRef.current = true;
+
+    performSpeech(messageId, text);
+  };
+
+  // Perform actual speech
+  const performSpeech = (messageId: string, text: string) => {
+    if (!speechSynthesis || !isSpeechReady) {
+      toast({
+        title: language === "malayalam" ? "പിന്തുണയില്ല" : "Not supported",
+        description:
+          language === "malayalam"
+            ? "ഈ ബ്രൗസറിൽ ടെക്സ്റ്റ്-ടു-സ്പീച്ച് പിന്തുണയില്ല"
+            : "Text-to-speech is not supported in this browser",
+        variant: "destructive",
+      });
+      isProcessingSpeechRef.current = false;
+      processNextSpeech();
+      return;
+    }
+
+    try {
+      const cleanText = stripMarkdown(text);
+      if (!cleanText || cleanText.trim().length < 2) {
+        isProcessingSpeechRef.current = false;
+        processNextSpeech();
+        return;
+      }
+
+      const utterance = new SpeechSynthesisUtterance(cleanText);
+      const voices = speechSynthesis.getVoices();
+
+      // Prioritize Malayalam voice, fallback to English only for English language
+      let selectedVoice;
+      if (language === "malayalam") {
+        selectedVoice = voices.find((v) => v.lang.includes("ml")) || null;
+        if (!selectedVoice) {
+          toast({
+            title:
+              language === "malayalam"
+                ? "മലയാളം ശബ്ദം ലഭ്യമല്ല"
+                : "Malayalam Voice Unavailable",
+            description:
+              language === "malayalam"
+                ? "മലയാളം ടെക്സ്റ്റ്-ടു-സ്പീച്ച് ശബ്ദം ലഭ്യമല്ല. ദയവായി Google TTS-ൽ മലയാളം ശബ്ദം ഇൻസ്റ്റാൾ ചെയ്യുക അല്ലെങ്കിൽ മറ്റൊരു ബ്രൗസർ/ഉപകരണം പരീക്ഷിക്കുക."
+                : "No Malayalam TTS voice found. Please install a Malayalam voice in Google TTS or try a different browser/device.",
+            variant: "destructive",
+          });
+          isProcessingSpeechRef.current = false;
+          processNextSpeech();
+          return;
+        }
+      } else {
+        selectedVoice =
+          voices.find(
+            (v) => v.lang.includes("en-IN") || v.lang.includes("en-US")
+          ) ||
+          voices.find((v) => v.lang.includes("en")) ||
+          voices[0];
+      }
+
+      if (selectedVoice) {
+        utterance.voice = selectedVoice;
+        utterance.lang = selectedVoice.lang;
+      } else {
+        utterance.lang = language === "malayalam" ? "ml-IN" : "en-US";
+      }
+
+      utterance.rate = 0.85;
+      utterance.pitch = 1.0;
+      utterance.volume = 1.0;
+
+      utterance.onstart = () => {
+        setSpeakingMessageId(messageId);
+        currentUtteranceRef.current = utterance;
+      };
+
+      utterance.onend = () => {
+        setSpeakingMessageId(null);
+        currentUtteranceRef.current = null;
+        isProcessingSpeechRef.current = false;
+        setTimeout(() => processNextSpeech(), 100);
+      };
+
+      utterance.onerror = (event) => {
+        console.warn("Speech error:", event.error);
+        setSpeakingMessageId(null);
+        currentUtteranceRef.current = null;
+        isProcessingSpeechRef.current = false;
+        if (event.error !== "interrupted" && event.error !== "canceled") {
+          toast({
+            title: language === "malayalam" ? "പിശക്" : "Speech Error",
+            description: `Speech failed: ${event.error}`,
+            variant: "destructive",
+          });
+        }
+        setTimeout(() => processNextSpeech(), 200);
+      };
+
+      speechSynthesis.speak(utterance);
+    } catch (error) {
+      console.error("Speech creation error:", error);
+      isProcessingSpeechRef.current = false;
+      processNextSpeech();
+    }
+  };
+
+  // Text-to-Speech functions
+  const stripMarkdown = (text: string): string => {
+    if (language === "malayalam") {
+      return text.replace(/\n+/g, " ").trim(); // Minimal processing for Malayalam
+    }
+    return text
+      .replace(/#{1,6}\s+/g, "")
+      .replace(/\*\*(.*?)\*\*/g, "$1")
+      .replace(/\*(.*?)\*/g, "$1")
+      .replace(/`(.*?)`/g, "$1")
+      .replace(/```[\s\S]*?```/g, "")
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+      .replace(/^\s*[-*+]\s+/gm, "")
+      .replace(/^\s*\d+\.\s+/gm, "")
+      .replace(/\n+/g, " ")
+      .trim();
+  };
+
+  const handleTextToSpeech = (messageId: string, text: string) => {
+    if (!speechSynthesis || !isSpeechReady) {
+      toast({
+        title: language === "malayalam" ? "പിന്തുണയില്ല" : "Not supported",
+        description:
+          language === "malayalam"
+            ? "ഈ ബ്രൗസറിൽ ടെക്സ്റ്റ്-ടു-സ്പീച്ച് പിന്തുണയില്ല"
+            : "Text-to-speech is not supported in this browser",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (speakingMessageId === messageId) {
+      cleanupAllSpeech();
+      return;
+    }
+
+    cleanupAllSpeech();
+    speechQueueRef.current = [{ messageId, text }];
+    processNextSpeech();
+  };
+
+  useEffect(() => {
+    return () => {
+      cleanupAllSpeech();
+    };
+  }, [speechSynthesis]);
+
+  useEffect(() => {
+    if (speechSynthesis && speakingMessageId) {
+      cleanupAllSpeech();
+    }
+  }, [language]);
+
+  // Auto-scroll to bottom
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -71,11 +307,14 @@ const FarmerAssistantScreen: React.FC<AssistantProps> = ({
   }, [messages, isLoading]);
 
   const formatMessageText = (text: string) => {
+    if (language === "malayalam") {
+      return { __html: text.replace(/\n/g, "<br />") };
+    }
     const html = marked(text);
     return { __html: html };
   };
 
-  // Voice recognition functions (same as HomeScreen)
+  // Voice recognition functions
   const ensureRecognition = () => {
     const SR: any =
       (window as any).SpeechRecognition ||
@@ -83,7 +322,7 @@ const FarmerAssistantScreen: React.FC<AssistantProps> = ({
     if (!SR) return null;
     const r: any = new SR();
     r.lang = language === "malayalam" ? "ml-IN" : "en-IN";
-    r.interimResults = true; // Enable interim results to show live speech
+    r.interimResults = true;
     r.maxAlternatives = 1;
     r.continuous = false;
     return r;
@@ -91,7 +330,6 @@ const FarmerAssistantScreen: React.FC<AssistantProps> = ({
 
   const handleMicClick = () => {
     if (listening) {
-      // Stop listening if already active
       if (recognitionRef.current) {
         recognitionRef.current.stop();
       }
@@ -108,6 +346,7 @@ const FarmerAssistantScreen: React.FC<AssistantProps> = ({
           language === "malayalam"
             ? "ഈ ബ്രൗസറിൽ മൈക്ക് പിന്തുണയില്ല."
             : "Microphone support is not available in this browser.",
+        variant: "destructive",
       });
       return;
     }
@@ -138,7 +377,6 @@ const FarmerAssistantScreen: React.FC<AssistantProps> = ({
           description: `"${finalTranscript}"`,
         });
         try {
-          // Route via voice navigation (same logic as HomeScreen)
           const decision = await routeFromTranscript(finalTranscript);
           if (
             decision.action === "navigate" &&
@@ -151,16 +389,13 @@ const FarmerAssistantScreen: React.FC<AssistantProps> = ({
               description: `${decision.targetId} • ${(decision.confidence * 100).toFixed(0)}%`,
             });
           } else {
-            // If it's not a navigation command, treat it as a chat message
             setInputMessage(finalTranscript);
-            // Automatically send the message
             setTimeout(() => {
               handleSendMessage();
             }, 100);
           }
         } catch (error) {
           console.error("Voice routing error:", error);
-          // Fallback: treat as chat message
           setInputMessage(finalTranscript);
           setTimeout(() => {
             handleSendMessage();
@@ -181,6 +416,7 @@ const FarmerAssistantScreen: React.FC<AssistantProps> = ({
           language === "malayalam"
             ? "വോയ്സ് തിരിച്ചറിയാൻ കഴിഞ്ഞില്ല"
             : "Voice recognition failed. Please try again.",
+        variant: "destructive",
       });
     };
     rec.onend = () => {
@@ -196,13 +432,14 @@ const FarmerAssistantScreen: React.FC<AssistantProps> = ({
       toast({
         title: "Error",
         description: "Failed to start voice recognition",
+        variant: "destructive",
       });
     }
   };
+
   const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
 
-    // Rate limiting: prevent requests more frequent than every 3 seconds
     const now = Date.now();
     if (now - lastRequestTime < 3000) {
       const errorMessage: Message = {
@@ -215,7 +452,6 @@ const FarmerAssistantScreen: React.FC<AssistantProps> = ({
       return;
     }
 
-    // Check if API key is available
     if (!apiKey) {
       const errorMessage: Message = {
         id: Date.now().toString(),
@@ -227,10 +463,7 @@ const FarmerAssistantScreen: React.FC<AssistantProps> = ({
       return;
     }
 
-    // Update last request time
     setLastRequestTime(now);
-
-    // Mark that user has sent a message
     setHasUserSentMessage(true);
 
     const userMessage: Message = {
@@ -244,18 +477,14 @@ const FarmerAssistantScreen: React.FC<AssistantProps> = ({
     setIsLoading(true);
 
     try {
-      // Create farming-focused prompt
-      const farmingPrompt = `You are a helpful farming assistant for Indian farmers. Provide practical, actionable advice on farming topics. Keep responses concise and well-structured. ${language === "malayalam" ? "Please respond in Malayalam language." : "Please respond in English language."} User question: ${userMessage.text}`;
+      const farmingPrompt = `You are a helpful farming assistant for Indian farmers. Provide practical, actionable advice on farming topics. Keep responses concise and well-structured. Respond in Malayalam language if the user selects Malayalam. User question: ${userMessage.text}`;
 
-      // Try using the Google Generative AI SDK first
       try {
         const genAI = new GoogleGenerativeAI(apiKey);
         const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-
         const result = await model.generateContent(farmingPrompt);
         const response = await result.response;
         const assistantResponse = response.text();
-
         const assistantMessage: Message = {
           id: (Date.now() + 1).toString(),
           text: assistantResponse,
@@ -265,8 +494,6 @@ const FarmerAssistantScreen: React.FC<AssistantProps> = ({
         setMessages((prev) => [...prev, assistantMessage]);
       } catch (sdkError) {
         console.log("SDK failed, trying direct API call...");
-
-        // Fallback to direct API call
         const response = await fetch(
           `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`,
           {
@@ -298,7 +525,6 @@ const FarmerAssistantScreen: React.FC<AssistantProps> = ({
         const assistantResponse =
           data.candidates?.[0]?.content?.parts?.[0]?.text ||
           "Sorry, I could not generate a response.";
-
         const assistantMessage: Message = {
           id: (Date.now() + 1).toString(),
           text: assistantResponse,
@@ -310,7 +536,6 @@ const FarmerAssistantScreen: React.FC<AssistantProps> = ({
     } catch (error) {
       console.error("Gemini API Error:", error);
       let errorText = "Sorry, I encountered an error. Please try again.";
-
       if (error instanceof Error) {
         if (
           error.message.includes("API_KEY_INVALID") ||
@@ -346,7 +571,6 @@ const FarmerAssistantScreen: React.FC<AssistantProps> = ({
             "Network error. Please check your internet connection and try again.";
         }
       }
-
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         text: errorText,
@@ -359,21 +583,18 @@ const FarmerAssistantScreen: React.FC<AssistantProps> = ({
     }
   };
 
-  // Auto-ask if initial question provided (from voice routing)
   useEffect(() => {
     if (initialQuestion) {
       setInputMessage(initialQuestion);
-      // Slight delay to ensure UI updates
       const t = setTimeout(() => {
         void handleSendMessage();
       }, 50);
       return () => clearTimeout(t);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialQuestion]);
+
   return (
     <div className="flex flex-col h-screen bg-background">
-      {/* Header */}
       <div className="flex-shrink-0 p-4 border-b border-border bg-background">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -400,7 +621,6 @@ const FarmerAssistantScreen: React.FC<AssistantProps> = ({
         </div>
       </div>
 
-      {/* Chat Messages */}
       <div
         ref={chatContainerRef}
         className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden"
@@ -419,6 +639,12 @@ const FarmerAssistantScreen: React.FC<AssistantProps> = ({
 
               <div
                 className={`max-w-[70%] p-3 rounded-lg ${message.sender === "user" ? "bg-primary text-primary-foreground ml-auto" : "bg-muted text-muted-foreground"}`}
+                style={{
+                  fontFamily:
+                    language === "malayalam"
+                      ? "'Noto Sans Malayalam', sans-serif"
+                      : "inherit",
+                }}
               >
                 {message.sender === "assistant" ? (
                   <div
@@ -428,12 +654,39 @@ const FarmerAssistantScreen: React.FC<AssistantProps> = ({
                 ) : (
                   <p className="text-sm whitespace-pre-wrap">{message.text}</p>
                 )}
-                <span className="text-xs opacity-70 mt-1 block">
-                  {message.timestamp.toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </span>
+                <div className="flex items-center justify-between mt-2">
+                  <span className="text-xs opacity-70">
+                    {message.timestamp.toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
+                  {message.sender === "assistant" && speechSynthesis && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() =>
+                        handleTextToSpeech(message.id, message.text)
+                      }
+                      className="p-1 h-6 w-6 hover:bg-background/50"
+                      title={
+                        speakingMessageId === message.id
+                          ? language === "malayalam"
+                            ? "നിർത്തുക"
+                            : "Stop speaking"
+                          : language === "malayalam"
+                            ? "ഉച്ചത്തിൽ വായിക്കുക"
+                            : "Read aloud"
+                      }
+                    >
+                      {speakingMessageId === message.id ? (
+                        <VolumeX className="h-3 w-3" />
+                      ) : (
+                        <Volume2 className="h-3 w-3" />
+                      )}
+                    </Button>
+                  )}
+                </div>
               </div>
 
               {message.sender === "user" && (
@@ -460,12 +713,10 @@ const FarmerAssistantScreen: React.FC<AssistantProps> = ({
             </div>
           )}
 
-          {/* Invisible element to scroll to */}
           <div ref={messagesEndRef} />
         </div>
       </div>
 
-      {/* Assistant Robot Image - shown when no messages sent */}
       {!hasUserSentMessage && (
         <div className="fixed inset-0 flex items-center justify-center mt-16 pointer-events-none">
           <img
@@ -476,9 +727,7 @@ const FarmerAssistantScreen: React.FC<AssistantProps> = ({
         </div>
       )}
 
-      {/* Fixed Input Bar */}
       <div className="fixed bottom-16 left-0 right-0 bg-background p-4 border-t border-border backdrop-blur-sm z-10">
-        {/* Live Speech Display */}
         {(listening || interimText) && (
           <div className="mb-3 bg-background/90 backdrop-blur-sm border border-border rounded-lg p-3 shadow-lg">
             <div className="text-xs text-muted-foreground mb-1">
@@ -501,6 +750,12 @@ const FarmerAssistantScreen: React.FC<AssistantProps> = ({
             }
             disabled={isLoading}
             className="flex-1"
+            style={{
+              fontFamily:
+                language === "malayalam"
+                  ? "'Noto Sans Malayalam', sans-serif"
+                  : "inherit",
+            }}
           />
           <Button
             variant={listening || isProcessing ? "secondary" : "outline"}
@@ -543,4 +798,5 @@ const FarmerAssistantScreen: React.FC<AssistantProps> = ({
     </div>
   );
 };
+
 export default FarmerAssistantScreen;
