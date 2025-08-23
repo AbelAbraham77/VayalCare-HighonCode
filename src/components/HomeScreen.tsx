@@ -865,15 +865,21 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
               return (
                 <button
                   key={action.id}
-                  onClick={() =>
-                    toast({
-                      title: action.label,
-                      description:
-                        language === "ml"
-                          ? "പ്ലേസ്‌ഹോൾഡർ - നിങ്ങൾ പിന്നീട് പുതുക്കാം"
-                          : "Placeholder - you can update later",
-                    })
-                  }
+                  onClick={() => {
+                    // Handle Fair Farm navigation
+                    if (action.id === "mapping") {
+                      onFeatureClick("fairfarm");
+                    } else {
+                      // Show placeholder toast for other actions
+                      toast({
+                        title: action.label,
+                        description:
+                          language === "ml"
+                            ? "പ്ലേസ്‌ഹോൾഡർ - നിങ്ങൾ പിന്നീട് പുതുക്കാം"
+                            : "Placeholder - you can update later",
+                      });
+                    }
+                  }}
                   className="flex flex-col items-center p-3 rounded-[10%] bg-muted text-card-foreground hover:shadow-lg transition-all duration-300 border-0 overflow-hidden"
                 >
                   <div className="w-12 h-12 text-primary flex items-center justify-center mx-auto mb-2">

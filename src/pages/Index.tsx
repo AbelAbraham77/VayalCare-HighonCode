@@ -18,6 +18,7 @@ import ExpenseTrackerScreen from "../components/ExpenseTrackerScreen";
 import AgricultureNewsScreen from "../components/AgricultureNewsScreen";
 import GovtSchemesScreen from "../components/GovtSchemesScreen";
 import LabourerHub from "../components/LabourerHub";
+import FairFarm from "../components/FairFarm";
 import BottomNavigation from "../components/BottomNavigation";
 
 const Index = () => {
@@ -110,6 +111,8 @@ const Index = () => {
         return <GovtSchemesScreen onBack={() => setActiveTab("resources")} />;
       case "labourers":
         return <LabourerHub onBack={() => setActiveTab("resources")} />;
+      case "fairfarm":
+        return <FairFarm onBack={() => setActiveTab("home")} />;
       default:
         return (
           <HomeScreen
