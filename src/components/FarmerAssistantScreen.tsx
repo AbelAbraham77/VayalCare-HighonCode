@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { Send, Bot, User, Languages, ArrowLeft } from "lucide-react";
+import { Send, Bot, User, Languages, ArrowLeft, Mic } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -9,8 +9,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useToast } from "@/components/ui/use-toast";
 import { marked } from "marked";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { routeFromTranscript } from "@/lib/voiceNavigation";
 interface Message {
   id: string;
   text: string;
@@ -20,12 +22,15 @@ interface Message {
 interface AssistantProps {
   initialQuestion?: string;
   onExit?: () => void;
+  onFeatureClick?: (featureId: string) => void;
 }
 
 const FarmerAssistantScreen: React.FC<AssistantProps> = ({
   initialQuestion,
   onExit,
+  onFeatureClick,
 }) => {
+  const { toast } = useToast();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
@@ -39,6 +44,13 @@ const FarmerAssistantScreen: React.FC<AssistantProps> = ({
   const [hasUserSentMessage, setHasUserSentMessage] = useState(false);
   const [language, setLanguage] = useState("english");
   const [lastRequestTime, setLastRequestTime] = useState(0);
+
+  // Voice recognition state
+  const [listening, setListening] = useState(false);
+  const [interimText, setInterimText] = useState<string>("");
+  const [isProcessing, setIsProcessing] = useState(false);
+  const recognitionRef = useRef<any>(null);
+
   const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -61,6 +73,131 @@ const FarmerAssistantScreen: React.FC<AssistantProps> = ({
   const formatMessageText = (text: string) => {
     const html = marked(text);
     return { __html: html };
+  };
+
+  // Voice recognition functions (same as HomeScreen)
+  const ensureRecognition = () => {
+    const SR: any =
+      (window as any).SpeechRecognition ||
+      (window as any).webkitSpeechRecognition;
+    if (!SR) return null;
+    const r: any = new SR();
+    r.lang = language === "malayalam" ? "ml-IN" : "en-IN";
+    r.interimResults = true; // Enable interim results to show live speech
+    r.maxAlternatives = 1;
+    r.continuous = false;
+    return r;
+  };
+
+  const handleMicClick = () => {
+    if (listening) {
+      // Stop listening if already active
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+      setListening(false);
+      setInterimText("");
+      return;
+    }
+    const rec = ensureRecognition();
+    if (!rec) {
+      toast({
+        title:
+          language === "malayalam" ? "വോയ്സ് ലഭ്യമല്ല" : "Voice not available",
+        description:
+          language === "malayalam"
+            ? "ഈ ബ്രൗസറിൽ മൈക്ക് പിന്തുണയില്ല."
+            : "Microphone support is not available in this browser.",
+      });
+      return;
+    }
+    recognitionRef.current = rec;
+    rec.onstart = () => {
+      setListening(true);
+      setInterimText("");
+      setIsProcessing(false);
+    };
+    rec.onresult = async (event: any) => {
+      let interimTranscript = "";
+      let finalTranscript = "";
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          finalTranscript += transcript;
+        } else {
+          interimTranscript += transcript;
+        }
+      }
+      setInterimText(interimTranscript);
+      if (finalTranscript) {
+        setListening(false);
+        setInterimText("");
+        setIsProcessing(true);
+        toast({
+          title: language === "malayalam" ? "കേട്ടത്" : "Processing",
+          description: `"${finalTranscript}"`,
+        });
+        try {
+          // Route via voice navigation (same logic as HomeScreen)
+          const decision = await routeFromTranscript(finalTranscript);
+          if (
+            decision.action === "navigate" &&
+            decision.targetId &&
+            onFeatureClick
+          ) {
+            onFeatureClick(decision.targetId);
+            toast({
+              title: language === "malayalam" ? "പോകുന്നു" : "Navigating",
+              description: `${decision.targetId} • ${(decision.confidence * 100).toFixed(0)}%`,
+            });
+          } else {
+            // If it's not a navigation command, treat it as a chat message
+            setInputMessage(finalTranscript);
+            // Automatically send the message
+            setTimeout(() => {
+              handleSendMessage();
+            }, 100);
+          }
+        } catch (error) {
+          console.error("Voice routing error:", error);
+          // Fallback: treat as chat message
+          setInputMessage(finalTranscript);
+          setTimeout(() => {
+            handleSendMessage();
+          }, 100);
+        } finally {
+          setIsProcessing(false);
+        }
+      }
+    };
+    rec.onerror = (event: any) => {
+      console.error("Speech recognition error:", event.error);
+      setListening(false);
+      setInterimText("");
+      setIsProcessing(false);
+      toast({
+        title: language === "malayalam" ? "പിശക്" : "Error",
+        description:
+          language === "malayalam"
+            ? "വോയ്സ് തിരിച്ചറിയാൻ കഴിഞ്ഞില്ല"
+            : "Voice recognition failed. Please try again.",
+      });
+    };
+    rec.onend = () => {
+      setListening(false);
+      setInterimText("");
+    };
+    try {
+      rec.start();
+    } catch (e) {
+      console.error("Failed to start voice recognition:", e);
+      setListening(false);
+      setInterimText("");
+      toast({
+        title: "Error",
+        description: "Failed to start voice recognition",
+      });
+    }
   };
   const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
@@ -341,6 +478,19 @@ const FarmerAssistantScreen: React.FC<AssistantProps> = ({
 
       {/* Fixed Input Bar */}
       <div className="fixed bottom-16 left-0 right-0 bg-background p-4 border-t border-border backdrop-blur-sm z-10">
+        {/* Live Speech Display */}
+        {(listening || interimText) && (
+          <div className="mb-3 bg-background/90 backdrop-blur-sm border border-border rounded-lg p-3 shadow-lg">
+            <div className="text-xs text-muted-foreground mb-1">
+              {language === "malayalam" ? "കേൾക്കുന്നു..." : "Listening..."}
+            </div>
+            <div className="text-sm text-foreground font-medium">
+              {interimText ||
+                (language === "malayalam" ? "സംസാരിക്കുക..." : "Speak now...")}
+            </div>
+          </div>
+        )}
+
         <div className="flex gap-2">
           <Input
             value={inputMessage}
@@ -352,6 +502,35 @@ const FarmerAssistantScreen: React.FC<AssistantProps> = ({
             disabled={isLoading}
             className="flex-1"
           />
+          <Button
+            variant={listening || isProcessing ? "secondary" : "outline"}
+            onClick={handleMicClick}
+            disabled={isProcessing}
+            size="icon"
+            title={
+              listening
+                ? language === "malayalam"
+                  ? "കേൾക്കുന്നു…"
+                  : "Listening…"
+                : isProcessing
+                  ? language === "malayalam"
+                    ? "പ്രോസസ്സിംഗ്..."
+                    : "Processing..."
+                  : language === "malayalam"
+                    ? "വോയ്സ് ഇൻപുട്ട്"
+                    : "Voice input"
+            }
+          >
+            <Mic
+              className={`h-4 w-4 ${
+                listening
+                  ? "animate-pulse text-red-500"
+                  : isProcessing
+                    ? "animate-spin text-blue-500"
+                    : ""
+              }`}
+            />
+          </Button>
           <Button
             onClick={handleSendMessage}
             disabled={isLoading || !inputMessage.trim()}

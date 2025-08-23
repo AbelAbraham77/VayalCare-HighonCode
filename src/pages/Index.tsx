@@ -62,6 +62,11 @@ const Index = () => {
               setActiveTab("home");
               setInitialChatQuestion(null);
             }}
+            onFeatureClick={(id) => {
+              // Reset any pending chat question unless staying in chatbot
+              if (id !== "chatbot") setInitialChatQuestion(null);
+              setActiveTab(id);
+            }}
           />
         );
       case "notifications":
