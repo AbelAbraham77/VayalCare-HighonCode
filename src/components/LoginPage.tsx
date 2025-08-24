@@ -214,13 +214,12 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onLanguageChange }) => {
       }}
     >
       <div className="w-full max-w-md">
-        {/* Language Selector */}
-        <div className="flex justify-center mb-6">
-          <LanguageSelector onLanguageChange={onLanguageChange} />
-        </div>
-
         <Card className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm shadow-2xl border-0 dark:shadow-2xl transition-colors duration-300">
-          <CardHeader className="text-center pb-6">
+          <CardHeader className="text-center pb-6 relative">
+            {/* Language Selector */}
+            <div className="absolute top-4 left-4">
+              <LanguageSelector onLanguageChange={onLanguageChange} />
+            </div>
             {/* Logo */}
             <div className="w-32 h-32 mx-auto mb-4 flex items-center justify-center">
               <img
